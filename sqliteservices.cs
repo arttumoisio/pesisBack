@@ -9,7 +9,7 @@ namespace pesisBackend
         var connectionStringBuilder = new SqliteConnectionStringBuilder();
 
         //Use DB in project directory.  If it does not exist, create it:
-        connectionStringBuilder.DataSource = "./sqlite/pesisKanta.db";
+        connectionStringBuilder.DataSource = "../pesisKantaHelmi.db";
 
         return new SqliteConnection(connectionStringBuilder.ConnectionString);
         

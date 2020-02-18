@@ -262,6 +262,15 @@
           "lib/netcoreapp3.1/Microsoft.Extensions.Primitives.dll": {}
         }
       },
+      "Newtonsoft.Json/12.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+        }
+      },
       "SQLitePCLRaw.bundle_e_sqlite3/2.0.2": {
         "type": "package",
         "dependencies": {
@@ -377,6 +386,33 @@
         },
         "runtime": {
           "lib/netstandard2.1/System.ComponentModel.Annotations.dll": {}
+        }
+      },
+      "System.Data.SQLite.Core/1.0.112": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/System.Data.SQLite.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Data.SQLite.dll": {}
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/netstandard2.0/SQLite.Interop.dll": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/osx-x64/native/netstandard2.0/SQLite.Interop.dll": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/win-x64/native/netstandard2.0/SQLite.Interop.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/netstandard2.0/SQLite.Interop.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
         }
       },
       "System.Diagnostics.DiagnosticSource/4.7.0": {
@@ -773,6 +809,37 @@
         "packageIcon.png"
       ]
     },
+    "Newtonsoft.Json/12.0.3": {
+      "sha512": "6mgjfnRB4jKMlzHSl+VD+oUc1IebOZabkbyWj2RiTgWwYPPuaK1H97G1sHqGwPlS5npiF5Q0OrxN1wni2n5QWg==",
+      "type": "package",
+      "path": "newtonsoft.json/12.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/netstandard1.0/Newtonsoft.Json.dll",
+        "lib/netstandard1.0/Newtonsoft.Json.xml",
+        "lib/netstandard1.3/Newtonsoft.Json.dll",
+        "lib/netstandard1.3/Newtonsoft.Json.xml",
+        "lib/netstandard2.0/Newtonsoft.Json.dll",
+        "lib/netstandard2.0/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "newtonsoft.json.12.0.3.nupkg.sha512",
+        "newtonsoft.json.nuspec",
+        "packageIcon.png"
+      ]
+    },
     "SQLitePCLRaw.bundle_e_sqlite3/2.0.2": {
       "sha512": "OVPI/nh5AqfLCIKhAYqjCa6AHhc7oKApGcGM3UhMRSerFiBx58nSpGwxVFdMgjOCWZR+fA49nzsnKlWp5hFo8w==",
       "type": "package",
@@ -957,6 +1024,54 @@
         "version.txt"
       ]
     },
+    "System.Data.SQLite.Core/1.0.112": {
+      "sha512": "3wA9v/K2ncZWsWfEBTiQppsi2014IJMXsZ1md3pk5bEXAJyuTthSrHF4bIWm5MG+C5g5XLhA2H7XfnSq1PXCeQ==",
+      "type": "package",
+      "path": "system.data.sqlite.core/1.0.112",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/net20/System.Data.SQLite.Core.targets",
+        "build/net20/x64/SQLite.Interop.dll",
+        "build/net20/x86/SQLite.Interop.dll",
+        "build/net40/System.Data.SQLite.Core.targets",
+        "build/net40/x64/SQLite.Interop.dll",
+        "build/net40/x86/SQLite.Interop.dll",
+        "build/net45/System.Data.SQLite.Core.targets",
+        "build/net45/x64/SQLite.Interop.dll",
+        "build/net45/x86/SQLite.Interop.dll",
+        "build/net451/System.Data.SQLite.Core.targets",
+        "build/net451/x64/SQLite.Interop.dll",
+        "build/net451/x86/SQLite.Interop.dll",
+        "build/net46/System.Data.SQLite.Core.targets",
+        "build/net46/x64/SQLite.Interop.dll",
+        "build/net46/x86/SQLite.Interop.dll",
+        "lib/net20/System.Data.SQLite.dll",
+        "lib/net20/System.Data.SQLite.dll.config",
+        "lib/net20/System.Data.SQLite.xml",
+        "lib/net40/System.Data.SQLite.dll",
+        "lib/net40/System.Data.SQLite.dll.config",
+        "lib/net40/System.Data.SQLite.xml",
+        "lib/net45/System.Data.SQLite.dll",
+        "lib/net45/System.Data.SQLite.dll.config",
+        "lib/net45/System.Data.SQLite.xml",
+        "lib/net451/System.Data.SQLite.dll",
+        "lib/net451/System.Data.SQLite.dll.config",
+        "lib/net451/System.Data.SQLite.xml",
+        "lib/net46/System.Data.SQLite.dll",
+        "lib/net46/System.Data.SQLite.dll.config",
+        "lib/net46/System.Data.SQLite.xml",
+        "lib/netstandard2.0/System.Data.SQLite.dll",
+        "lib/netstandard2.0/System.Data.SQLite.dll.config",
+        "lib/netstandard2.0/System.Data.SQLite.xml",
+        "runtimes/linux-x64/native/netstandard2.0/SQLite.Interop.dll",
+        "runtimes/osx-x64/native/netstandard2.0/SQLite.Interop.dll",
+        "runtimes/win-x64/native/netstandard2.0/SQLite.Interop.dll",
+        "runtimes/win-x86/native/netstandard2.0/SQLite.Interop.dll",
+        "system.data.sqlite.core.1.0.112.nupkg.sha512",
+        "system.data.sqlite.core.nuspec"
+      ]
+    },
     "System.Diagnostics.DiagnosticSource/4.7.0": {
       "sha512": "oJjw3uFuVDJiJNbCD8HB4a2p3NYLdt1fiT5OGsPLw+WTOuG0KpP4OXelMmmVKpClueMsit6xOlzy4wNKQFiBLg==",
       "type": "package",
@@ -1027,7 +1142,9 @@
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.1": [
-      "Microsoft.EntityFrameworkCore.Sqlite >= 3.1.0"
+      "Microsoft.EntityFrameworkCore.Sqlite >= 3.1.0",
+      "Newtonsoft.Json >= 12.0.3",
+      "System.Data.SQLite.Core >= 1.0.112"
     ]
   },
   "packageFolders": {
@@ -1072,6 +1189,14 @@
           "Microsoft.EntityFrameworkCore.Sqlite": {
             "target": "Package",
             "version": "[3.1.0, )"
+          },
+          "Newtonsoft.Json": {
+            "target": "Package",
+            "version": "[12.0.3, )"
+          },
+          "System.Data.SQLite.Core": {
+            "target": "Package",
+            "version": "[1.0.112, )"
           }
         },
         "imports": [

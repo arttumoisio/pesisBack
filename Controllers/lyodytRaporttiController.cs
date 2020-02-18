@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 namespace pesisBackend.Controllers
 {
     [ApiController]
-    [Route("[controller]")] // [Route("testi")] -> route on /testi, nyt se on lyodyt
+    [Route("testi")] // [Route("testi")] -> route on /testi, nyt se on lyodyt
     public class lyodytController : ControllerBase
     {
-        private readonly ILogger<lyodytController> _logger;
+        private readonly DBQueries query_;
 
-        public lyodytController(ILogger<lyodytController> logger)
+        public lyodytController()
         {
-            _logger = logger;
+            query_ = new DBQueries();
         }
 
         [HttpGet]
@@ -38,29 +38,6 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(404)]
          public IActionResult GetById(int loppu)
         {
-            Console.WriteLine(Request.Host);
-            var a = new SqliteService();
-            var connection = a.connectorF();
-            connection.Open();
-
-            var selectCmd = connection.CreateCommand();
-            selectCmd.CommandText = "SELECT nimi FROM pelaaja where pelaaja.nimi in ('Puputti Henri','Puhtimäki Juha')";
-//             selectCmd.CommandText = @"SELECT name FROM sqlite_master
-// WHERE type='table'
-// ORDER BY name;";
-
-            using (var reader = selectCmd.ExecuteReader())
-            {
-                
-                while (reader.Read())
-                {
-                    var message = reader.GetString(0);
-                    Console.WriteLine(message);
-                    message = reader.GetName(1);
-                    Console.WriteLine(message);
-                }
-            }
-
             
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             if (loppu < 1)
