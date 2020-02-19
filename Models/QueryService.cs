@@ -50,6 +50,13 @@ namespace pesisBackend
 
             _con.Open();
         }
+        private string toteutaKysely(SQLiteCommand dbCmd)
+        {
+            Console.WriteLine(dbCmd.CommandText);
+            DataTable dt = new DataTable();
+            dt.Load(dbCmd.ExecuteReader());
+            return JsonConvert.SerializeObject(dt);  
+        }
 
         /// <summary>
         /// // TODO
@@ -107,13 +114,6 @@ namespace pesisBackend
             return toteutaKysely(dbCmd);
         }
 
-        private string toteutaKysely(SQLiteCommand dbCmd)
-        {
-            Console.WriteLine(dbCmd.CommandText);
-            DataTable dt = new DataTable();
-            dt.Load(dbCmd.ExecuteReader());
-            return JsonConvert.SerializeObject(dt);  
-        }
         public string haeJoukkueet(
             int vuosialkaen, 
             int vuosiloppuen,
@@ -125,10 +125,22 @@ namespace pesisBackend
             kj Joukkue,
             ko+vo Ottelut,
             kp+vp Pisteet,
-            k3p+v3p '3p voitot',
-            k2p+v2p '2p voitot',
-            k1p+v1p '1p tappiot',
-            k0p+v0p '0p tappiot',
+            k3p+v3p '3p',
+            k2p+v2p '2p',
+            k1p+v1p '1p',
+            k0p+v0p '0p',
+            kp 'Pisteet kotona',
+            k3p '3p kotona',
+            k2p '2p kotona',
+            k1p '1p kotona',
+            k0p '0p kotona',
+            vp 'Pisteet vieraissa',
+            v3p '3p vieraissa',
+            v2p '2p vieraissa',
+            v1p '1p vieraissa',
+            v0p '0p vieraissa',
+            kju+vju Juoksut,
+            vpä+kpä Päästetyt,
             kk Kaudet
 
             FROM
@@ -141,6 +153,8 @@ namespace pesisBackend
             SUM(k2p) 'k2p',
             SUM(k1p) 'k1p',
             SUM(k0p) 'k0p',
+            SUM(k1j+k2j+ks) kju,
+            SUM(v1j+v2j+vs) kpä,
             COUNT(DISTINCT kausi) kk
 
             FROM ottelu o, joukkue j
@@ -158,6 +172,8 @@ namespace pesisBackend
             SUM(v2p) 'v2p',
             SUM(v1p) 'v1p',
             SUM(v0p) 'v0p',
+            SUM(v1j+v2j+vs) vju,
+            SUM(k1j+k2j+ks) vpä,
             COUNT(DISTINCT kausi) vk
 
             FROM ottelu o, joukkue j
@@ -166,12 +182,17 @@ namespace pesisBackend
             AND tila != 'ottelu ei ole vielä alkanut'
             GROUP BY joukkue
             ) t2
-            WHERE vj = kj
-            AND  vj = @joukkue
-            GROUP BY t1.kj
+            WHERE vj = kj";
+            if (joukkue != "Mikä tahansa") {
+                query += "AND vj = @joukkue";
+            }
+            query += @"
+            GROUP BY kj
             ORDER BY Pisteet DESC
             ;
             ";
+            
+
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
@@ -184,17 +205,28 @@ namespace pesisBackend
             int vuosiloppuen,
             string joukkue)
         {
-            SQLiteCommand dbCmd = _con.CreateCommand();
             string query = @"
             SELECT 
             kj Joukkue,
             ko+vo Ottelut,
             kp+vp Pisteet,
-            k3p+v3p '3p voitot',
-            k2p+v2p '2p voitot',
-            k1p+v1p '1p tappiot',
-            k0p+v0p '0p tappiot',
-            kk Kaudet
+            k3p+v3p '3p',
+            k2p+v2p '2p',
+            k1p+v1p '1p',
+            k0p+v0p '0p',
+            kp 'Pisteet kotona',
+            k3p '3p kotona',
+            k2p '2p kotona',
+            k1p '1p kotona',
+            k0p '0p kotona',
+            vp 'Pisteet vieraissa',
+            v3p '3p vieraissa',
+            v2p '2p vieraissa',
+            v1p '1p vieraissa',
+            v0p '0p vieraissa',
+            kju+vju Juoksut,
+            vpä+kpä Päästetyt,
+            kk Kausi
 
             FROM
             (
@@ -206,6 +238,8 @@ namespace pesisBackend
             SUM(k2p) 'k2p',
             SUM(k1p) 'k1p',
             SUM(k0p) 'k0p',
+            SUM(k1j+k2j+ks) kju,
+            SUM(v1j+v2j+vs) kpä,
             kausi kk
 
             FROM ottelu o, joukkue j
@@ -223,6 +257,8 @@ namespace pesisBackend
             SUM(v2p) 'v2p',
             SUM(v1p) 'v1p',
             SUM(v0p) 'v0p',
+            SUM(v1j+v2j+vs) vju,
+            SUM(k1j+k2j+ks) vpä,
             kausi vk
 
             FROM ottelu o, joukkue j
@@ -231,11 +267,17 @@ namespace pesisBackend
             AND tila != 'ottelu ei ole vielä alkanut'
             GROUP BY joukkue,kausi
             ) t2
-            WHERE kk = vk AND kj = vj AND vj = @joukkue
+            WHERE kk = vk AND kj = vj ";
+            if (joukkue != "Mikä tahansa") {
+                query += "AND vj = @joukkue";
+            }
+            query += @"
             GROUP BY kj,kk
             ORDER BY Pisteet DESC
             ;
             ";
+
+            SQLiteCommand dbCmd = _con.CreateCommand();
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
