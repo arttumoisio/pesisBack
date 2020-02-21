@@ -10,4 +10,11 @@
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.112.0" />
   </ItemGroup>
 
+<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+  <Copy SourceFiles="Assets/pesistk.db" DestinationFolder="$(OutDir)/Assets" />
+</Target>
+<Target Name="CopyCustomContentOnPublish" AfterTargets="Publish">
+  <Copy SourceFiles="Assets/pesistk.db" DestinationFolder="$(PublishDir)Assets" />
+</Target>
+
 </Project>

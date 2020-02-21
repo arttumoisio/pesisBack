@@ -13,7 +13,7 @@ namespace pesisBackend
     class SQLiteQueries
     {
         private SQLiteConnection _con;
-        private const string DB_NAME = "pesisKantaHelmi.db";
+        private const string DB_NAME = "pesistk.db";
         public SQLiteQueries()
         {
             string cwd = Directory.GetCurrentDirectory();
@@ -23,16 +23,18 @@ namespace pesisBackend
             // Etsitään polku tietokannalle.
             while (dir.Parent != null)
             {
-                System.Diagnostics.Debug.WriteLine(dir.Parent);
-                if (File.Exists(dir.Parent + $"{Path.DirectorySeparatorChar}{DB_NAME}"))
+                string path = dir.ToString() + $"{Path.DirectorySeparatorChar}Assets{Path.DirectorySeparatorChar}{DB_NAME}";
+
+                Console.WriteLine(path);
+                if (File.Exists(path))
                 {
-                    absolutePathToDb = dir.Parent.ToString() + $"{Path.DirectorySeparatorChar}{DB_NAME}";
+                    absolutePathToDb = path;
 
                     break;
                 }
                 else dir = dir.Parent;
+                Console.WriteLine(path);
             }
-            Console.WriteLine(absolutePathToDb);
             if (absolutePathToDb is null)
             {
                 // TODO: Täytyy keskeyttää kaikki!
@@ -43,8 +45,6 @@ namespace pesisBackend
 
             //Use DB in project directory.  If it does not exist, create it:
             connectionStringBuilder.DataSource = absolutePathToDb;
-
-            Console.WriteLine(connectionStringBuilder.ConnectionString);
 
              _con = new SQLiteConnection(connectionStringBuilder.ConnectionString);
 
