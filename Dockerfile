@@ -14,4 +14,4 @@ WORKDIR /app
 
 COPY --from=build-env /app/out .
 
-ENTRYPOINT ["dotnet", "pesisBackend.dll"]
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet pesisBackend.dll
