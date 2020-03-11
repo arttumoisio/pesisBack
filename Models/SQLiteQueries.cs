@@ -65,19 +65,29 @@ namespace pesisBackend
         {
             string query = @"
             SELECT 
-            ROW_NUMBER() OVER (ORDER BY sum(ku+ly) DESC) Sija, 
             p.nimi Nimi,
+            kausi Kausi,
             sum(o) Ottelut,
-            sum(ku+ly) Yhteensä,
+            sum(ku+ly) 'Lyödyt yht',
             sum(ku) Kunnarit, 
-            sum(ly) Lyödyt, 
-            kausi Kausi
+            sum(ly) Lyödyt,
+            sum(tu) Tuodut,
+            sum(ly+tu+ku) 'Tehopisteet yht',
+            sum(lv) Lyöntivuorot,
+            sum(kl1+kl2+kl3+kl4) Kärkilyönnit,
+            ROUND(1.0*sum(ku+ly)/sum(o),2) 'Lyödyt yht per ottelu', 
+            ROUND(1.0*sum(ku)/sum(o),2) 'Kunnarit per ottelu', 
+            ROUND(1.0*sum(ly)/sum(o),2) 'Lyödyt per ottelu',
+            ROUND(1.0*sum(tu)/sum(o),2) 'Tuodut per ottelu',
+            ROUND(1.0*sum(ly+tu+ku)/sum(o),2) 'Tehopisteet yht per ottelu',
+            ROUND(1.0*sum(lv)/sum(o),2) 'Lyöntivuorot per ottelu',
+            ROUND(1.0*sum(kl1+kl2+kl3+kl4)/sum(o),2) 'Kärkilyönnit per ottelu'
             FROM ottelu_tilasto ot, pelaaja p, ottelu oo
             WHERE ot.pelaaja_id = p.pelaaja_id 
             AND oo.ottelu_id = ot.ottelu_id
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             GROUP BY ot.pelaaja_id, kausi
-            ORDER BY Yhteensä DESC
+            ORDER BY `Tehopisteet yht` DESC
             ";
 
             SQLiteCommand dbCmd = _con.CreateCommand();
@@ -92,20 +102,37 @@ namespace pesisBackend
         {
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = @"
-            SELECT 
-            ROW_NUMBER() OVER (ORDER BY sum(ku+ly) DESC) Sija, 
+            SELECT  
             p.nimi Nimi,
             sum(o) Ottelut,
-            sum(ku+ly) Yhteensä, 
+            sum(ku+ly) 'Lyödyt yht', 
             sum(ku) Kunnarit, 
-            sum(ly) Lyödyt, 
+            sum(ly) Lyödyt,
+            sum(tu) Tuodut,
+            sum(ly+tu+ku) 'Tehopisteet yht',
+            sum(lv) Lyöntivuorot,
+            sum(kl1+kl2+kl3+kl4) Kärkilyönnit, 
+            ROUND(1.0*sum(ku+ly)/sum(o),2) 'Lyödyt yht per ottelu', 
+            ROUND(1.0*sum(ku)/sum(o),2) 'Kunnarit per ottelu', 
+            ROUND(1.0*sum(ly)/sum(o),2) 'Lyödyt per ottelu',
+            ROUND(1.0*sum(tu)/sum(o),2) 'Tuodut per ottelu',
+            ROUND(1.0*sum(ly+tu+ku)/sum(o),2) 'Tehopisteet yht per ottelu',
+            ROUND(1.0*sum(lv)/sum(o),2) 'Lyöntivuorot per ottelu',
+            ROUND(1.0*sum(kl1+kl2+kl3+kl4)/sum(o),2) 'Kärkilyönnit per ottelu', 
+            ROUND(1.0*sum(ku+ly)/COUNT(DISTINCT kausi),2) 'Lyödyt yht per kausi', 
+            ROUND(1.0*sum(ku)/COUNT(DISTINCT kausi),2) 'Kunnarit per kausi', 
+            ROUND(1.0*sum(ly)/COUNT(DISTINCT kausi),2) 'Lyödyt per kausi',
+            ROUND(1.0*sum(tu)/COUNT(DISTINCT kausi),2) 'Tuodut per kausi',
+            ROUND(1.0*sum(ly+tu+ku)/COUNT(DISTINCT kausi),2) 'Tehopisteet yht per kausi',
+            ROUND(1.0*sum(lv)/COUNT(DISTINCT kausi),2) 'Lyöntivuorot per kausi',
+            ROUND(1.0*sum(kl1+kl2+kl3+kl4)/COUNT(DISTINCT kausi),2) 'Kärkilyönnit per kausi', 
             COUNT(DISTINCT kausi) Kaudet
             FROM ottelu_tilasto ot, pelaaja p, ottelu oo
             WHERE ot.pelaaja_id = p.pelaaja_id 
             AND oo.ottelu_id = ot.ottelu_id
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             GROUP BY ot.pelaaja_id
-            ORDER BY Yhteensä DESC
+            ORDER BY `Tehopisteet yht` DESC
             ";
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
@@ -208,6 +235,7 @@ namespace pesisBackend
             string query = @"
             SELECT 
             kj Joukkue,
+            kk Kausi,
             ko+vo Ottelut,
             kp+vp Pisteet,
             k3p+v3p '3p',
@@ -225,8 +253,7 @@ namespace pesisBackend
             v1p '1p vieraissa',
             v0p '0p vieraissa',
             kju+vju Juoksut,
-            vpä+kpä Päästetyt,
-            kk Kausi
+            vpä+kpä Päästetyt
 
             FROM
             (
