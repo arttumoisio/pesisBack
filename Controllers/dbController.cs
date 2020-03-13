@@ -38,16 +38,16 @@ namespace pesisBackend.Controllers
           int kaudetLoppu=2020, 
           Boolean vuosittain=false,
           string paikka="",
-          string vastustaja="",
-          string tulos=""
+          string tulos="",
+          string vastustaja=""
 
         )
         {
-            Console.WriteLine(Request.Body);
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
-            if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos);} 
-            else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos); }
+            Console.WriteLine(Request.Body);
+            if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja);} 
+            else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja); }
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
@@ -59,13 +59,17 @@ namespace pesisBackend.Controllers
           int kaudetAlku=2000,
           int kaudetLoppu=2020, 
           Boolean vuosittain=false,
-          string joukkue = "Mikä tahansa"
+          string joukkue = "Mikä tahansa",
+          string paikka="",
+          string tulos="",
+          string vastustaja=""
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            Console.WriteLine(Request.Body);
             string data = "";
-            if (vuosittain) { data = _query2.haeJoukkueetVuosittain(kaudetAlku,kaudetLoppu,joukkue);} 
-            else { data = _query2.haeJoukkueet(kaudetAlku,kaudetLoppu,joukkue); }
+            if (vuosittain) { data = _query2.haeJoukkueetVuosittain(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja);} 
+            else { data = _query2.haeJoukkueet(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja); }
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
