@@ -27,5 +27,16 @@ namespace pesisBackend.Controllers
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
+        [HttpGet("vuodet")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetVuodet(
+        )
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            string data = _query2.apuVuodet();
+            if (data == ""){return StatusCode(404); }
+            return Ok(data);
+        }
     }
 }

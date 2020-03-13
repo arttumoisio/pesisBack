@@ -36,13 +36,18 @@ namespace pesisBackend.Controllers
         public IActionResult GetPelaajat(
           int kaudetAlku=2000,
           int kaudetLoppu=2020, 
-          Boolean vuosittain=false
+          Boolean vuosittain=false,
+          string paikka="",
+          string vastustaja="",
+          string tulos=""
+
         )
         {
+            Console.WriteLine(Request.Body);
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
-            if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu);} 
-            else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu); }
+            if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos);} 
+            else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos); }
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }

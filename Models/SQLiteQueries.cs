@@ -57,24 +57,54 @@ namespace pesisBackend
             dt.Load(dbCmd.ExecuteReader());
             return JsonConvert.SerializeObject(dt);  
         }
+        private Tuple<string, string, string> koti(string koti = "")
+        {
+            string kotiGroup = "";
+            string kotiFilter = "";
+            string kotiErittely = "";
+            if (koti == "Koti"){
+                kotiFilter = $"AND j.joukkue_id=o.koti_id";
+            } else if (koti == "Vieras") {
+                kotiFilter = $"AND j.joukkue_id=o.vieras_id";
+            } else if (koti == "Eritelty") {
+                kotiErittely = @"
+                CASE ot.joukkue_id
+                WHEN o.koti_id THEN 'Koti'
+	            WHEN o.vieras_id THEN 'Vieras'
+                END `Koti/Vieras`,";
+                kotiGroup = $", `Koti/Vieras`";
+            }
+            return new Tuple<string, string, string>(kotiGroup,kotiFilter,kotiErittely)
+        }
 
         /// <summary>
         /// // TODO
         /// </summary>
-        public string haePelaajatVuosittain(int vuosialkaen, int vuosiloppuen)
+        public string haePelaajatVuosittain(
+            int vuosialkaen, 
+            int vuosiloppuen, 
+            string koti = "", 
+            string pisteet = ""
+        )
         {
-            string query = @"
+            Tuple<string,string,string> k = this.koti(koti);
+            string kotiGroup = k.Item1;
+            string kotiFilter = k.Item2;
+            string kotiErittely = k.Item2;
+            string query = $@"
             SELECT 
             p.nimi Nimi,
             kausi Kausi,
+            {kotiErittely}
+            joukkue Joukkue,
             SUM(o) Ottelut,
             SUM(ku+ly) 'Lyödyt yht',
             SUM(ku) Kunnarit, 
             SUM(ly) Lyödyt,
             SUM(tu) Tuodut,
-            SUM(ly+tu+ku) 'Tehopisteet yht',
-            SUM(lv) Lyöntivuorot,
-            SUM(kl1+kl2+kl3+kl4) Kärkilyönnit,
+            SUM(ly+tu+ku) 'Tehopist. yht',
+            SUM(lv) LV,
+            SUM(kl1+kl2+kl3+kl4) KL,
             SUM(kl1) `KL->1`, 
             SUM(kl2) `KL->2`, 
             SUM(kl3) `KL->3`, 
@@ -82,9 +112,9 @@ namespace pesisBackend
             ROUND(1.0*SUM(ku)/SUM(o),2) 'Kunnarit per ottelu', 
             ROUND(1.0*SUM(ly)/SUM(o),2) 'Lyödyt per ottelu',
             ROUND(1.0*SUM(tu)/SUM(o),2) 'Tuodut per ottelu',
-            ROUND(1.0*SUM(ly+tu+ku)/SUM(o),2) 'Tehopisteet yht per ottelu',
-            ROUND(1.0*SUM(lv)/SUM(o),2) 'Lyöntivuorot per ottelu',
-            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(o),2) 'Kärkilyönnit per ottelu',
+            ROUND(1.0*SUM(ly+tu+ku)/SUM(o),2) 'Tehopist. yht per ottelu',
+            ROUND(1.0*SUM(lv)/SUM(o),2) 'LV per ottelu',
+            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(o),2) 'KL per ottelu',
             ROUND(1.0*SUM(kl1)/SUM(o),2) 'KL->1 per ottelu',
             ROUND(1.0*SUM(kl2)/SUM(o),2) 'KL->2 per ottelu',
             ROUND(1.0*SUM(kl3)/SUM(o),2) 'KL->3 per ottelu',
@@ -92,27 +122,27 @@ namespace pesisBackend
             MAX(ku+0) `Maks kunnarit ottelussa`,
             MAX(ly+0) `Maks lyödyt ottelussa`,
             MAX(tu+0) `Maks tuodut ottelussa`,
-            MAX(ku+ly+tu) `Maks tehopisteet ottelussa`,
-            MAX(kl1+kl2+kl3+kl4) `Maks kärkilyönnit ottelussa`,
+            MAX(ku+ly+tu) `Maks Tehopist. ottelussa`,
+            MAX(kl1+kl2+kl3+kl4) `Maks KL ottelussa`,
             MAX(kl1) `Maks KL->1 ottelussa`,
             MAX(kl2) `Maks KL->2 ottelussa`,
             MAX(kl3) `Maks KL->3 ottelussa`,
-            MAX(lv+0) `Maks lyöntivuorot ottelussa`,
-            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(lv),2) 'Kärkilyönnit per lyöntivuoro',
-            ROUND(1.0*SUM(kl1)/SUM(lv),2) 'KL->1 per lyöntivuoro',
-            ROUND(1.0*SUM(kl2)/SUM(lv),2) 'KL->2 per lyöntivuoro',
-            ROUND(1.0*SUM(kl3)/SUM(lv),2) 'KL->3 per lyöntivuoro',
-            ROUND(1.0*SUM(kl4)/SUM(lv),2) 'Lyödyt yht per lyöntivuoro',
-            ROUND(1.0*SUM(ku)/SUM(lv),2) 'Kunnarit per lyöntivuoro',
-            ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per lyöntivuoro',
-            ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per lyöntivuoro',
-            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopisteet per lyöntivuoro'
-            FROM ottelu_tilasto ot, pelaaja p, ottelu oo
-            WHERE ot.pelaaja_id = p.pelaaja_id 
-            AND oo.ottelu_id = ot.ottelu_id
+            MAX(lv+0) `Maks LV ottelussa`,
+            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(lv),2) 'KL per LV',
+            ROUND(1.0*SUM(kl1)/SUM(lv),2) 'KL->1 per LV',
+            ROUND(1.0*SUM(kl2)/SUM(lv),2) 'KL->2 per LV',
+            ROUND(1.0*SUM(kl3)/SUM(lv),2) 'KL->3 per LV',
+            ROUND(1.0*SUM(kl4)/SUM(lv),2) 'Lyödyt yht per LV',
+            ROUND(1.0*SUM(ku)/SUM(lv),3) 'Kunnarit per LV',
+            ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per LV',
+            ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per LV',
+            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopist. per LV'
+            FROM ottelu_tilasto ot, pelaaja p, ottelu o, joukkue j
+            WHERE ot.pelaaja_id = p.pelaaja_id AND j.joukkue_id = ot.joukkue_id {kotiFilter}
+            AND ot.ottelu_id = o.ottelu_id
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
-            GROUP BY ot.pelaaja_id, kausi
-            ORDER BY `Tehopisteet yht` DESC
+            GROUP BY ot.pelaaja_id, kausi{kotiGroup}
+            ORDER BY `Tehopist. yht` DESC
             ";
 
             SQLiteCommand dbCmd = _con.CreateCommand();
@@ -123,20 +153,75 @@ namespace pesisBackend
             return toteutaKysely(dbCmd);
 
         }
-        public string haePelaajat(int vuosialkaen, int vuosiloppuen)
+        public string haePelaajat(
+            int vuosialkaen, 
+            int vuosiloppuen, 
+            string koti = "", 
+            string pisteet = ""
+        )
         {
+            Tuple<string,string,string> k = this.koti(koti);
+            string kotiGroup = k.Item1;
+            string kotiFilter = k.Item2;
+            string kotiErittely = k.Item2;
+
+            string pisteetGroup = "";
+            string pisteetErittely = "";
+            string pisteetFilter = $@"
+                    AND (
+                    CASE ot.joukkue_id
+                        WHEN o.vieras_id THEN vp
+                        WHEN o.koti_id THEN kp
+                    END
+                    ) ";
+            switch (pisteet)
+            {
+                case "Voitto":
+                    pisteetFilter += ">= 2" ;
+                    break;
+                case "Tappio":
+                    pisteetFilter += "<= 1" ;
+                    break;
+                case "3p Voitto":
+                    pisteetFilter += "= 3" ;
+                    break;
+                case "2p Voitto":
+                    pisteetFilter += "= 2" ;
+                    break;
+                case "1p Tappio":
+                    pisteetFilter += "= 1" ;
+                    break;
+                case "0p Tappio":
+                    pisteetFilter += "= 0" ;
+                    break;
+                case "Eritelty":
+                    pisteetFilter ="";
+                    pisteetErittely = @"
+                    CASE ot.joukkue_id
+                        WHEN o.vieras_id THEN vp || 'P'
+                        WHEN o.koti_id THEN kp || 'P'
+                    END `Voitto/Tappio`,";
+                    pisteetGroup =", `Voitto/Tappio`";
+                    break;
+                default:
+                    pisteetFilter = "";
+                    break;
+            }
+                        
             SQLiteCommand dbCmd = _con.CreateCommand();
-            string query = @"
+            string query = $@"
             SELECT  
             p.nimi Nimi,
+            {kotiErittely}
+            {pisteetErittely}
             SUM(o) Ottelut,
             SUM(ku+ly) 'Lyödyt yht', 
             SUM(ku) Kunnarit, 
             SUM(ly) Lyödyt,
             SUM(tu) Tuodut,
-            SUM(ly+tu+ku) 'Tehopisteet yht',
-            SUM(lv) Lyöntivuorot,
-            SUM(kl1+kl2+kl3+kl4) Kärkilyönnit, 
+            SUM(ly+tu+ku) 'Tehopist. yht',
+            SUM(lv) LV,
+            SUM(kl1+kl2+kl3+kl4) KL, 
             SUM(kl1) `KL->1`, 
             SUM(kl2) `KL->2`, 
             SUM(kl3) `KL->3`, 
@@ -144,9 +229,9 @@ namespace pesisBackend
             ROUND(1.0*SUM(ku)/SUM(o),2) 'Kunnarit per ottelu', 
             ROUND(1.0*SUM(ly)/SUM(o),2) 'Lyödyt per ottelu',
             ROUND(1.0*SUM(tu)/SUM(o),2) 'Tuodut per ottelu',
-            ROUND(1.0*SUM(ly+tu+ku)/SUM(o),2) 'Tehopisteet yht per ottelu',
-            ROUND(1.0*SUM(lv)/SUM(o),2) 'Lyöntivuorot per ottelu',
-            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(o),2) 'Kärkilyönnit per ottelu',
+            ROUND(1.0*SUM(ly+tu+ku)/SUM(o),2) 'Tehopist. yht per ottelu',
+            ROUND(1.0*SUM(lv)/SUM(o),2) 'LV per ottelu',
+            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(o),2) 'KL per ottelu',
             ROUND(1.0*SUM(kl1)/SUM(o),2) 'KL->1 per ottelu',
             ROUND(1.0*SUM(kl2)/SUM(o),2) 'KL->2 per ottelu',
             ROUND(1.0*SUM(kl3)/SUM(o),2) 'KL->3 per ottelu', 
@@ -154,9 +239,9 @@ namespace pesisBackend
             ROUND(1.0*SUM(ku)/COUNT(DISTINCT kausi),2) 'Kunnarit per kausi', 
             ROUND(1.0*SUM(ly)/COUNT(DISTINCT kausi),2) 'Lyödyt per kausi',
             ROUND(1.0*SUM(tu)/COUNT(DISTINCT kausi),2) 'Tuodut per kausi',
-            ROUND(1.0*SUM(ly+tu+ku)/COUNT(DISTINCT kausi),2) 'Tehopisteet yht per kausi',
-            ROUND(1.0*SUM(lv)/COUNT(DISTINCT kausi),2) 'Lyöntivuorot per kausi',
-            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/COUNT(DISTINCT kausi),2) 'Kärkilyönnit per kausi',
+            ROUND(1.0*SUM(ly+tu+ku)/COUNT(DISTINCT kausi),2) 'Tehopist. yht per kausi',
+            ROUND(1.0*SUM(lv)/COUNT(DISTINCT kausi),2) 'LV per kausi',
+            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/COUNT(DISTINCT kausi),2) 'KL per kausi',
             ROUND(1.0*SUM(kl1)/COUNT(DISTINCT kausi),2) 'KL->1 per kausi',
             ROUND(1.0*SUM(kl2)/COUNT(DISTINCT kausi),2) 'KL->2 per kausi',
             ROUND(1.0*SUM(kl3)/COUNT(DISTINCT kausi),2) 'KL->3 per kausi',
@@ -164,28 +249,36 @@ namespace pesisBackend
             MAX(ku+0) `Maks kunnarit ottelussa`,
             MAX(ly+0) `Maks lyödyt ottelussa`,
             MAX(tu+0) `Maks tuodut ottelussa`,
-            MAX(ku + ly + tu) `Maks tehopisteet ottelussa`,
-            MAX(kl1+kl2+kl3+kl4) `Maks kärkilyönnit ottelussa`,
+            MAX(ku + ly + tu) `Maks Tehopist. ottelussa`,
+            MAX(kl1+kl2+kl3+kl4) `Maks KL ottelussa`,
             MAX(kl1) `Maks KL->1 ottelussa`,
             MAX(kl2) `Maks KL->2 ottelussa`,
             MAX(kl3) `Maks KL->3 ottelussa`,
-            MAX(lv+0) `Maks lyöntivuorot ottelussa`,
-            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(lv),2) 'Kärkilyönnit per lyöntivuoro',
-            ROUND(1.0*SUM(kl1)/SUM(lv),2) 'KL->1 per lyöntivuoro',
-            ROUND(1.0*SUM(kl2)/SUM(lv),2) 'KL->2 per lyöntivuoro',
-            ROUND(1.0*SUM(kl3)/SUM(lv),2) 'KL->3 per lyöntivuoro',
-            ROUND(1.0*SUM(kl4)/SUM(lv),2) 'Lyödyt yht per lyöntivuoro',
-            ROUND(1.0*SUM(ku)/SUM(lv),2) 'Kunnarit per lyöntivuoro',
-            ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per lyöntivuoro',
-            ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per lyöntivuoro',
-            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopisteet per lyöntivuoro',
-            COUNT(DISTINCT kausi) Kaudet
-            FROM ottelu_tilasto ot, pelaaja p, ottelu oo
+            MAX(lv+0) `Maks LV ottelussa`,
+            ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/SUM(lv),2) 'KL per LV',
+            ROUND(1.0*SUM(kl1)/SUM(lv),2) 'KL->1 per LV',
+            ROUND(1.0*SUM(kl2)/SUM(lv),2) 'KL->2 per LV',
+            ROUND(1.0*SUM(kl3)/SUM(lv),2) 'KL->3 per LV',
+            ROUND(1.0*SUM(kl4)/SUM(lv),2) 'Lyödyt yht per LV',
+            ROUND(1.0*SUM(ku)/SUM(lv),3) 'Kunnarit per LV',
+            ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per LV',
+            ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per LV',
+            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopist. per LV',
+            COUNT(DISTINCT kausi) Kaudet,
+            COUNT(DISTINCT joukkue) Joukkueet,
+            GROUP_CONCAT(DISTINCT joukkue) Joukkueet
+            FROM ottelu_tilasto ot, pelaaja p, ottelu o, joukkue j
             WHERE ot.pelaaja_id = p.pelaaja_id 
-            AND oo.ottelu_id = ot.ottelu_id
+            AND ot.joukkue_id = j.joukkue_id
+            AND ot.ottelu_id = o.ottelu_id
+            {kotiFilter}
+            {pisteetFilter}
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
-            GROUP BY ot.pelaaja_id
-            ORDER BY `Tehopisteet yht` DESC
+            GROUP BY 
+            ot.pelaaja_id 
+            {kotiGroup} 
+            {pisteetGroup}
+            ORDER BY `Tehopist. yht` DESC
             ";
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
@@ -380,6 +473,18 @@ namespace pesisBackend
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
+
+            return toteutaKysely(dbCmd);
+        }
+        public string apuVuodet()
+        {
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            string query = @"
+            SELECT DISTINCT kausi
+            FROM ottelu o
+            ORDER BY kausi
+            ";
+            dbCmd.CommandText = query;
 
             return toteutaKysely(dbCmd);
         }
