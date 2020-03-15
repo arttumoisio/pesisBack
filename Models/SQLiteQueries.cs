@@ -477,9 +477,12 @@ namespace pesisBackend
             bool vuosittain,
             string kotijoukkue,
             string vierasjoukkue,
-            string lukkari
+            string lukkari,
+            string STPT
         )
-        {
+        {   
+            string STPTFilter = filters.stpt(STPT);
+
             Tuple<string,string,string> vu = filters.vuosittain(vuosittain);
             string vuosittainGroup = vu.Item1;
             string vuosittainErittely = vu.Item2;
@@ -495,38 +498,41 @@ namespace pesisBackend
             string vierasFilter = v.Item2;
             string vierasErittely = v.Item3;
 
-            Tuple<string,string,string> l = filters.lukkari(lukkari);
+            Tuple<string,string,string, string> l = filters.lukkari(lukkari);
             string lukkariGroup = l.Item1;
             string lukkariFilter = l.Item2;
             string lukkariErittely = l.Item3;
+            string lukkariSelect = l.Item4;
 
             string query = $@"
             SELECT 
-            t.tuomari Tuomari,
-            {lukkariErittely}
+            tuomari Tuomari,
+            COUNT(o.ottelu_id) Ottelut,
             {vuosittainErittely}
-            COUNT(DISTINCT o.ottelu_id) Ottelut,
             {kotiErittely}
             {vierasErittely}
-
-            SUM(koti_id = ot.joukkue_id AND kp > vp) Kotivoitto,
-            SUM(koti_id = ot.joukkue_id AND kp < vp) Vierasvoitto,
-            ROUND(100.0*SUM(koti_id = ot.joukkue_id AND kp > vp)/COUNT(DISTINCT o.ottelu_id),2) `Kotivoitto-%`,
-            ROUND(100.0*SUM(koti_id = ot.joukkue_id AND kp < vp)/COUNT(DISTINCT o.ottelu_id),2) `Vierasvoitto-%`,
-            SUM(koti_id = ot.joukkue_id AND tuomari = pelituomari) PT,
-            SUM(koti_id = ot.joukkue_id AND tuomari = syottotuomari) ST
+            {lukkariErittely}
+            SUM(kp>vp)  Kotivoitto,
+            SUM(kp<vp)  Vierasvoitto,
+            ROUND(100.0*SUM(kp>vp)/COUNT(o.ottelu_id),2)  `Kotivoitto-%`,
+            ROUND(1.0*SUM(k1j+k2j+v1j+v2j+ks+vs+kk+vk)/COUNT(o.ottelu_id),2) `juoksut/ott`,
+            ROUND(1.0*SUM(k1j+k2j+ks+kk)/COUNT(o.ottelu_id),2) `K-juoksut/ott`,
+            ROUND(1.0*SUM(v1j+v2j+vs+vk)/COUNT(o.ottelu_id),2) `V-juoksut/ott`,
+            1 `Vapaataipaleet/ott`,
+            1 `Kärkilyönnit`,
+            1 `Kärkilyönti-%`,
+            SUM(tuomari = pelituomari) PT,
+            SUM(tuomari = syottotuomari) ST
             {vuosittainErittely2}
 
-            FROM tuomari t, ottelu o,  ottelu_tilasto ot, pelaaja p
-            WHERE (t.tuomari = syottotuomari OR t.tuomari = pelituomari)
-            AND ot.ottelu_id = o.ottelu_id
-            AND p.pelaaja_id = ot.pelaaja_id
-            AND upp = 'L'
+            FROM tuomari t, ottelu o {lukkariSelect}
+            WHERE (tuomari = syottotuomari OR tuomari = pelituomari)
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             AND tila != 'ottelu ei ole vielä alkanut'
             {kotiFilter}
             {vierasFilter}
             {lukkariFilter}
+            {STPTFilter}
             GROUP BY tuomari
             {vuosittainGroup}
             {kotiGroup}

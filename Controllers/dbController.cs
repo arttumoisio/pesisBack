@@ -81,14 +81,15 @@ namespace pesisBackend.Controllers
           Boolean vuosittain=false,
           string kotijoukkue = "",
           string vierasjoukkue = "",
-          string lukkari = ""
+          string lukkari = "",
+          string STPT = ""
         )
         {   
             Console.WriteLine(Request.Query);
             Console.WriteLine(Request.QueryString);
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
-            data = _query2.haeTuomarit(kaudetAlku,kaudetLoppu,vuosittain,kotijoukkue,vierasjoukkue, lukkari);
+            data = _query2.haeTuomarit(kaudetAlku,kaudetLoppu,vuosittain,kotijoukkue,vierasjoukkue, lukkari, STPT);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }

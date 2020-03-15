@@ -220,28 +220,51 @@ namespace pesisBackend
 
             return new Tuple<string, string, string>(vierasGroup,vierasFilter,vierasErittely);
         }
-        public Tuple<string, string, string> lukkari(string lukkari){
+        public Tuple<string, string, string, string> lukkari(string lukkari){
             string Group = "";
             string Filter = "";
             string Erittely = "";
+            string Select = @"";
             if (!String.IsNullOrEmpty(lukkari))
             {
+                Select = @"
+                , (SELECT
+                nimi lukkari,
+                p.pelaaja_id lukkari_id,
+                kotiB,
+                kotiB!=1 vierasB,
+                po.ottelu_id ottelu_id
+                FROM puoli_ottelu po, ottelu_tilasto ot, pelaaja p
+                WHERE po.tila != 'ottelu ei ole vielä alkanut'
+                AND po.joukkue_id = ot.joukkue_id
+                AND ot.pelaaja_id = p.pelaaja_id
+                AND po.ottelu_id = ot.ottelu_id
+                AND ot.upp = 'L') l
+                ";
+                Group = ", Lukkari";
+                Filter = @" AND l.ottelu_id = o.ottelu_id ";
                 Erittely = @"
-nimi Lukkari,
-SUM((ot.joukkue_id == o.koti_id) and (kp>vp))+SUM((ot.joukkue_id == o.vieras_id) and (vp>kp)) `Lukkarin voitot`,
-SUM((ot.joukkue_id == o.koti_id) and (kp<vp))+SUM((ot.joukkue_id == o.vieras_id) and (vp<kp)) `Lukkarin tappiot`,
-ROUND(100.0*(SUM((ot.joukkue_id == o.koti_id) and (kp>vp))+SUM((ot.joukkue_id == o.vieras_id) and (vp>kp)))/COUNT(DISTINCT o.ottelu_id),2) `Lukkarin voitto-%`,
-SUM(ot.joukkue_id == o.koti_id) `Kohtaamiset koti`,
-SUM(ot.joukkue_id == o.vieras_id) `Kohtaamiset vieras`,";
-                if (lukkari == "Eritelty")
-                {
-                    Group = ", Lukkari";
-                } else {
-                    Filter = "AND Lukkari = @lukkari";
+                lukkari Lukkari,
+                SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) `Lukkarin voitot`,
+                SUM(kp < vp AND kotiB) + SUM(kp > vp AND vierasB) `Lukkarin tappiot`,
+                ROUND(100.0*( SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) )/COUNT(DISTINCT o.ottelu_id),2) `Lukkarin voitto-%`,
+                ROUND(100.0*( SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) )/COUNT( o.ottelu_id),2) `Lukkarin voitto-%`,
+                SUM(kotiB) `Ottelut Lukkarin Kotona`,
+                SUM(vierasB) `Ottelut Lukkarin vieraissa`,";
+                if (lukkari != "Eritelty"){
+                    Filter += " AND Lukkari = @lukkari ";
                 }
             }
 
-            return new Tuple<string, string, string>(Group,Filter,Erittely);
+            return new Tuple<string, string, string, string>(Group,Filter,Erittely, Select);
+        }
+        public string stpt(string STPT){
+            string Filter = "";
+            if(!String.IsNullOrEmpty(STPT)){
+                if(STPT == "PT"){ Filter = " AND tuomari = pelituomari "; }
+                if(STPT == "ST"){ Filter = " AND tuomari = syottotuomari "; }
+            }
+            return Filter;
         }
         public Tuple<string, string, string> vuosittain(bool vuosittain){
             string group = "";
