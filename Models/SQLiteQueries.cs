@@ -106,7 +106,7 @@ namespace pesisBackend
             SUM(kl1+kl2+kl3+kl4) KL,
             SUM(kl1) `KL->1`, 
             SUM(kl2) `KL->2`, 
-            SUM(kl3) `KL->3`, 
+            SUM(kl3) `KL->3`,
             ROUND(1.0*SUM(ku+ly)/SUM(o),2) 'Lyödyt yht per ottelu', 
             ROUND(1.0*SUM(ku)/SUM(o),2) 'Kunnarit per ottelu', 
             ROUND(1.0*SUM(ly)/SUM(o),2) 'Lyödyt per ottelu',
@@ -135,7 +135,33 @@ namespace pesisBackend
             ROUND(1.0*SUM(ku)/SUM(lv),3) 'Kunnarit per LV',
             ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per LV',
             ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per LV',
-            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopist. per LV'
+            ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopist. per LV',
+            SUM(palkinto = 'A') `Kentän paras`,
+            SUM(palkinto = 'I') `1 palkinto`,
+            SUM(palkinto = 'II') `2 palkinto`,
+            SUM(upp = 'L') 'Lukkari',
+            SUM(upp = 'S') 'Sieppari',
+            SUM(upp = '1V') '1-vahti',
+            SUM(upp = '2V') '2-vahti',
+            SUM(upp = '3V') '3-vahti',
+            SUM(upp = '2P') '2-polttaja',
+            SUM(upp = '3P') '3-polttaja',
+            SUM(upp = '2K') '2-koppari',
+            SUM(upp = '3K') '3-koppari',
+            SUM(upp = '') 'jokeri',
+            SUM(pelaaja_nro = '1') 'Nro 1',
+            SUM(pelaaja_nro = '2') 'Nro 2',
+            SUM(pelaaja_nro = '3') 'Nro 3',
+            SUM(pelaaja_nro = '4') 'Nro 4',
+            SUM(pelaaja_nro = '5') 'Nro 5',
+            SUM(pelaaja_nro = '6') 'Nro 6',
+            SUM(pelaaja_nro = '7') 'Nro 7',
+            SUM(pelaaja_nro = '8') 'Nro 8',
+            SUM(pelaaja_nro = '9') 'Nro 9',
+            SUM(pelaaja_nro = '10') 'Nro 10',
+            SUM(pelaaja_nro = '11') 'Nro 11',
+            SUM(pelaaja_nro = '12') 'Nro 12'
+
             FROM ottelu_tilasto ot, pelaaja p, ottelu o, joukkue j
             WHERE ot.pelaaja_id = p.pelaaja_id 
             AND j.joukkue_id = ot.joukkue_id 
@@ -201,7 +227,7 @@ namespace pesisBackend
             SUM(kl1+kl2+kl3+kl4) KL, 
             SUM(kl1) `KL->1`, 
             SUM(kl2) `KL->2`, 
-            SUM(kl3) `KL->3`, 
+            SUM(kl3) `KL->3`,
             ROUND(1.0*SUM(ku+ly)/SUM(o),2) 'Lyödyt yht per ottelu', 
             ROUND(1.0*SUM(ku)/SUM(o),2) 'Kunnarit per ottelu', 
             ROUND(1.0*SUM(ly)/SUM(o),2) 'Lyödyt per ottelu',
@@ -241,6 +267,31 @@ namespace pesisBackend
             ROUND(1.0*SUM(ly)/SUM(lv),2) 'Lyödyt per LV',
             ROUND(1.0*SUM(tu)/SUM(lv),2) 'Tuodut per LV',
             ROUND(1.0*SUM(kl4+tu)/SUM(lv),2) 'Tehopist. per LV',
+            SUM(palkinto = 'A') `Kentän paras`,
+            SUM(palkinto = 'I') `1 palkinto`,
+            SUM(palkinto = 'II') `2 palkinto`,
+            SUM(upp = 'L') 'Lukkari',
+            SUM(upp = 'S') 'Sieppari',
+            SUM(upp = '1V') '1-vahti',
+            SUM(upp = '2V') '2-vahti',
+            SUM(upp = '3V') '3-vahti',
+            SUM(upp = '2P') '2-polttaja',
+            SUM(upp = '3P') '3-polttaja',
+            SUM(upp = '2K') '2-koppari',
+            SUM(upp = '3K') '3-koppari',
+            SUM(upp = '') 'jokeri',
+            SUM(pelaaja_nro = '1') 'Nro 1',
+            SUM(pelaaja_nro = '2') 'Nro 2',
+            SUM(pelaaja_nro = '3') 'Nro 3',
+            SUM(pelaaja_nro = '4') 'Nro 4',
+            SUM(pelaaja_nro = '5') 'Nro 5',
+            SUM(pelaaja_nro = '6') 'Nro 6',
+            SUM(pelaaja_nro = '7') 'Nro 7',
+            SUM(pelaaja_nro = '8') 'Nro 8',
+            SUM(pelaaja_nro = '9') 'Nro 9',
+            SUM(pelaaja_nro = '10') 'Nro 10',
+            SUM(pelaaja_nro = '11') 'Nro 11',
+            SUM(pelaaja_nro = '12') 'Nro 12',
             COUNT(DISTINCT kausi) Kaudet,
             COUNT(DISTINCT joukkue) Joukkueet,
             GROUP_CONCAT(DISTINCT joukkue) Joukkueet
@@ -291,81 +342,43 @@ namespace pesisBackend
 
             string query = $@"
             SELECT 
-            kj Joukkue,
-            kk Kausi,
+            j.joukkue Joukkue,
+            kausi Kausi,
             {kotiErittely}
             {tulosErittely}
             {vastustajaErittely}
-            ko+vo Ottelut,
-            kp+vp Pisteet,
-            k3p+v3p '3p',
-            k2p+v2p '2p',
-            k1p+v1p '1p',
-            k0p+v0p '0p',
-            kp 'Pisteet kotona',
-            k3p '3p kotona',
-            k2p '2p kotona',
-            k1p '1p kotona',
-            k0p '0p kotona',
-            vp 'Pisteet vieraissa',
-            v3p '3p vieraissa',
-            v2p '2p vieraissa',
-            v1p '1p vieraissa',
-            v0p '0p vieraissa',
-            kju+vju Juoksut,
-            vpä+kpä Päästetyt
-
-            FROM
-            (
-            SELECT 
-            joukkue kj,
-            'koti' koti,
-            koti_id k_id,
-            vieras_id kv_id,
-            COUNT(*) ko,
-            SUM(kp) kp,
-            SUM(k3p) 'k3p',
-            SUM(k2p) 'k2p',
-            SUM(k1p) 'k1p',
-            SUM(k0p) 'k0p',
-            SUM(k1j+k2j+ks) kju,
-            SUM(v1j+v2j+vs) kpä,
-            kausi kk
-
-            FROM ottelu o, joukkue j
-            WHERE o.koti_id = j.joukkue_id
+            count(*) Ottelut,
+            SUM(p) Pisteet,
+            SUM(`3p`) `3p`,
+            SUM(`2p`) `2p`,
+            SUM(`1p`) `1p`,
+            SUM(`0p`) `0p`,
+            SUM(`1j`+`2j`+k+s) Tehdyt,
+            SUM(`v1j`+`v2j`+vk+vs) Päästetyt,
+            SUM(`1j`) `1j Tehdyt`,
+            SUM(`2j`) `2j Tehdyt`,
+            SUM(`s`) `S Tehdyt`,
+            SUM(`k`) `K Tehdyt`,
+            SUM(`v1j`) `1j Päästetyt`,
+            SUM(`v2j`) `2j Päästetyt`,
+            SUM(`vs`) `S Päästetyt`,
+            SUM(`vk`) `K Päästetyt`,
+            SUM(INSTR(tulos,'s')=0 AND INSTR(tulos,'k')=0) '2 jakson pelit',
+            SUM(INSTR(tulos,'s')>0) 'Supervuoroon',
+            SUM(INSTR(tulos,'k')>0) 'Kotariin',
+            SUM(aloittaja) 'Aloittava sisävuoro',
+            SUM(aloittaja=0) 'Aloittava ulkovuoro',
+            SUM(svaloittaja) 'Aloittava sisävuoro superissa',
+            SUM(INSTR(tulos,'s')>0)+SUM(INSTR(tulos,'k')>0)-SUM(svaloittaja) 'Aloittava ulkovuoro superissa'
+            FROM puoli_ottelu po, joukkue j
+            WHERE po.joukkue_id = j.joukkue_id
+            AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             AND tila != 'ottelu ei ole vielä alkanut'
-            GROUP BY joukkue_id, kausi
-            ) t1,
-            (
-            SELECT 
-            joukkue vj,
-            'vieras' koti,
-            koti_id v_id,
-            vieras_id vv_id,
-            COUNT(*) vo,
-            SUM(vp) vp,
-            SUM(v3p) 'v3p',
-            SUM(v2p) 'v2p',
-            SUM(v1p) 'v1p',
-            SUM(v0p) 'v0p',
-            SUM(v1j+v2j+vs) vju,
-            SUM(k1j+k2j+ks) vpä,
-            kausi vk
-
-            FROM ottelu o, joukkue j
-            WHERE o.vieras_id = j.joukkue_id 
-            AND tila != 'ottelu ei ole vielä alkanut'
-            GROUP BY joukkue_id,kausi
-            ) t2
-            WHERE kk = vk AND v_id = k_id 
             {joukkueFilter}
             {kotiFilter}
             {tulosFilter}
             {vastustajaFilter}
-            AND vk BETWEEN @vuosialkaen AND @vuosiloppuen
-            AND kk BETWEEN @vuosialkaen AND @vuosiloppuen
-            GROUP BY kj,kk
+            GROUP BY po.joukkue_id ,kausi
             {kotiGroup} 
             {tulosGroup}
             {vastustajaGroup}
@@ -379,7 +392,6 @@ namespace pesisBackend
 
             return toteutaKysely(dbCmd);
         }
-
         public string haeJoukkueet(
             int vuosialkaen, 
             int vuosiloppuen,
@@ -408,81 +420,43 @@ namespace pesisBackend
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
             SELECT 
-            kj Joukkue,
+            j.joukkue Joukkue,
             {kotiErittely}
             {tulosErittely}
             {vastustajaErittely}
-            ko+vo Ottelut,
-            kp+vp Pisteet,
-            k3p+v3p '3p',
-            k2p+v2p '2p',
-            k1p+v1p '1p',
-            k0p+v0p '0p',
-            kp 'Pisteet kotona',
-            k3p '3p kotona',
-            k2p '2p kotona',
-            k1p '1p kotona',
-            k0p '0p kotona',
-            vp 'Pisteet vieraissa',
-            v3p '3p vieraissa',
-            v2p '2p vieraissa',
-            v1p '1p vieraissa',
-            v0p '0p vieraissa',
-            kju+vju Juoksut,
-            vpä+kpä Päästetyt,
-            kk Kaudet
-
-            FROM
-            (
-            SELECT 
-            joukkue kj,
-            'koti' koti,
-            koti_id k_id,
-            vieras_id kv_id,
-            COUNT(*) ko,
-            SUM(kp) kp,
-            SUM(k3p) 'k3p',
-            SUM(k2p) 'k2p',
-            SUM(k1p) 'k1p',
-            SUM(k0p) 'k0p',
-            SUM(k1j+k2j+ks) kju,
-            SUM(v1j+v2j+vs) kpä,
-            COUNT(DISTINCT kausi) kk
-
-            FROM ottelu o, joukkue j
-            WHERE o.koti_id = j.joukkue_id 
+            count(*) Ottelut,
+            SUM(p) Pisteet,
+            SUM(`3p`) `3p`,
+            SUM(`2p`) `2p`,
+            SUM(`1p`) `1p`,
+            SUM(`0p`) `0p`,
+            SUM(`1j`+`2j`+k+s) Tehdyt,
+            SUM(`v1j`+`v2j`+vk+vs) Päästetyt,
+            SUM(`1j`) `1j Tehdyt`,
+            SUM(`2j`) `2j Tehdyt`,
+            SUM(`s`) `S Tehdyt`,
+            SUM(`k`) `K Tehdyt`,
+            SUM(`v1j`) `1j Päästetyt`,
+            SUM(`v2j`) `2j Päästetyt`,
+            SUM(`vs`) `S Päästetyt`,
+            SUM(`vk`) `K Päästetyt`,
+            SUM(INSTR(tulos,'s')=0 AND INSTR(tulos,'k')=0) '2 jakson pelit',
+            SUM(INSTR(tulos,'s')>0) 'Supervuoroon',
+            SUM(INSTR(tulos,'k')>0) 'Kotariin',
+            SUM(aloittaja) 'Aloittava sisävuoro',
+            SUM(aloittaja=0) 'Aloittava ulkovuoro',
+            SUM(svaloittaja) 'Aloittava sisävuoro superissa',
+            SUM(INSTR(tulos,'s')>0)+SUM(INSTR(tulos,'k')>0)-SUM(svaloittaja) 'Aloittava ulkovuoro superissa',
+            COUNT(DISTINCT kausi) Kaudet
+            FROM puoli_ottelu po, joukkue j
+            WHERE po.joukkue_id = j.joukkue_id
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             AND tila != 'ottelu ei ole vielä alkanut'
-            GROUP BY joukkue
-            ) t1,
-            (
-            SELECT 
-            joukkue vj,
-            'vieras' koti,
-            vieras_id v_id,
-            koti_id vv_id,
-            COUNT(*) vo,
-            SUM(vp) vp,
-            SUM(v3p) 'v3p',
-            SUM(v2p) 'v2p',
-            SUM(v1p) 'v1p',
-            SUM(v0p) 'v0p',
-            SUM(v1j+v2j+vs) vju,
-            SUM(k1j+k2j+ks) vpä,
-            COUNT(DISTINCT kausi) vk
-
-            FROM ottelu o, joukkue j
-            WHERE o.vieras_id = j.joukkue_id 
-            AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
-            AND tila != 'ottelu ei ole vielä alkanut'
-            GROUP BY joukkue
-            ) t2
-            WHERE v_id = k_id 
             {joukkueFilter}
             {kotiFilter}
             {tulosFilter}
             {vastustajaFilter}
-            GROUP BY kj
+            GROUP BY j.joukkue_id
             {kotiGroup} 
             {tulosGroup}
             {vastustajaGroup}
@@ -497,6 +471,79 @@ namespace pesisBackend
 
             return toteutaKysely(dbCmd);
         }
+        public string haeTuomarit(
+            int vuosialkaen, 
+            int vuosiloppuen,
+            bool vuosittain,
+            string kotijoukkue,
+            string vierasjoukkue,
+            string lukkari
+        )
+        {
+            Tuple<string,string,string> vu = filters.vuosittain(vuosittain);
+            string vuosittainGroup = vu.Item1;
+            string vuosittainErittely = vu.Item2;
+            string vuosittainErittely2 = vu.Item3;
+
+            Tuple<string,string,string> k = filters.kotiJoukkue(kotijoukkue);
+            string kotiGroup = k.Item1;
+            string kotiFilter = k.Item2;
+            string kotiErittely = k.Item3;
+            
+            Tuple<string,string,string> v = filters.vierasJoukkue(vierasjoukkue);
+            string vierasGroup = v.Item1;
+            string vierasFilter = v.Item2;
+            string vierasErittely = v.Item3;
+
+            Tuple<string,string,string> l = filters.lukkari(lukkari);
+            string lukkariGroup = l.Item1;
+            string lukkariFilter = l.Item2;
+            string lukkariErittely = l.Item3;
+
+            string query = $@"
+            SELECT 
+            t.tuomari Tuomari,
+            {lukkariErittely}
+            {vuosittainErittely}
+            COUNT(DISTINCT o.ottelu_id) Ottelut,
+            {kotiErittely}
+            {vierasErittely}
+
+            SUM(koti_id = ot.joukkue_id AND kp > vp) Kotivoitto,
+            SUM(koti_id = ot.joukkue_id AND kp < vp) Vierasvoitto,
+            ROUND(100.0*SUM(koti_id = ot.joukkue_id AND kp > vp)/COUNT(DISTINCT o.ottelu_id),2) `Kotivoitto-%`,
+            ROUND(100.0*SUM(koti_id = ot.joukkue_id AND kp < vp)/COUNT(DISTINCT o.ottelu_id),2) `Vierasvoitto-%`,
+            SUM(koti_id = ot.joukkue_id AND tuomari = pelituomari) PT,
+            SUM(koti_id = ot.joukkue_id AND tuomari = syottotuomari) ST
+            {vuosittainErittely2}
+
+            FROM tuomari t, ottelu o,  ottelu_tilasto ot, pelaaja p
+            WHERE (t.tuomari = syottotuomari OR t.tuomari = pelituomari)
+            AND ot.ottelu_id = o.ottelu_id
+            AND p.pelaaja_id = ot.pelaaja_id
+            AND upp = 'L'
+            AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
+            AND tila != 'ottelu ei ole vielä alkanut'
+            {kotiFilter}
+            {vierasFilter}
+            {lukkariFilter}
+            GROUP BY tuomari
+            {vuosittainGroup}
+            {kotiGroup}
+            {vierasGroup}
+            {lukkariGroup}
+            ORDER BY Ottelut DESC;";
+
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            dbCmd.CommandText = query;
+            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
+            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
+            dbCmd.Parameters.AddWithValue("@kotijoukkue", kotijoukkue);
+            dbCmd.Parameters.AddWithValue("@vierasjoukkue", vierasjoukkue);
+            dbCmd.Parameters.AddWithValue("@lukkari", lukkari);
+
+            return toteutaKysely(dbCmd);
+        }
         public string apuJoukkueet(
             int vuosialkaen, 
             int vuosiloppuen)
@@ -507,6 +554,7 @@ namespace pesisBackend
             FROM ottelu o, joukkue j
             WHERE kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             AND (joukkue_id = koti_id OR joukkue_id = vieras_id)
+            AND tila != 'ottelu ei ole vielä alkanut'
             ORDER BY joukkue
             ";
             dbCmd.CommandText = query;
@@ -521,9 +569,74 @@ namespace pesisBackend
             string query = @"
             SELECT DISTINCT kausi
             FROM ottelu o
+            WHERE tila != 'ottelu ei ole vielä alkanut'
             ORDER BY kausi
             ";
             dbCmd.CommandText = query;
+
+            return toteutaKysely(dbCmd);
+        }
+        public string apuSarjaVaiheet()
+        {
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            string query = @"
+            SELECT DISTINCT sarjavaihe
+            FROM ottelu o
+            WHERE tila != 'ottelu ei ole vielä alkanut'
+            ";
+            dbCmd.CommandText = query;
+
+            return toteutaKysely(dbCmd);
+        }
+        public string apuLyontiNumerot()
+        {
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            string query = @"
+            SELECT DISTINCT pelaaja_nro
+            FROM ottelu_tilasto ot, ottelu o
+            WHERE tila != 'ottelu ei ole vielä alkanut'
+            AND o.ottelu_id = ot.ottelu_id
+
+            ";
+            dbCmd.CommandText = query;
+
+            return toteutaKysely(dbCmd);
+        }
+        public string apuUlkoPeliPaikat()
+        {
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            string query = @"
+            SELECT DISTINCT upp
+            FROM ottelu_tilasto ot, ottelu o
+            WHERE tila != 'ottelu ei ole vielä alkanut'
+            AND o.ottelu_id = ot.ottelu_id
+
+            ";
+            dbCmd.CommandText = query;
+
+            return toteutaKysely(dbCmd);
+        }
+        public string apuLukkarit(
+            int vuosialkaen, 
+            int vuosiloppuen)
+        {
+            SQLiteCommand dbCmd = _con.CreateCommand();
+            string query = @"
+            SELECT DISTINCT
+            nimi lukkari
+            FROM ottelu_tilasto ot, pelaaja p, joukkue j, ottelu o
+            WHERE ot.pelaaja_id = p.pelaaja_id
+            AND ot.joukkue_id = j.joukkue_id
+            AND o.ottelu_id = ot.ottelu_id
+            AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
+            AND upp='L'
+            GROUP by p.pelaaja_id
+            ORDER by COUNT(*) desc
+
+            ";
+            dbCmd.CommandText = query;
+            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
+            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
 
             return toteutaKysely(dbCmd);
         }

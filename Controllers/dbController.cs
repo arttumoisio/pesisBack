@@ -45,7 +45,6 @@ namespace pesisBackend.Controllers
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
-            Console.WriteLine(Request.Body);
             if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja);} 
             else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja); }
             if (data == ""){return StatusCode(404); }
@@ -59,17 +58,37 @@ namespace pesisBackend.Controllers
           int kaudetAlku=2000,
           int kaudetLoppu=2020, 
           Boolean vuosittain=false,
-          string joukkue = "Mikä tahansa",
+          string joukkue = "",
           string paikka="",
           string tulos="",
           string vastustaja=""
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            Console.WriteLine(Request.Body);
             string data = "";
             if (vuosittain) { data = _query2.haeJoukkueetVuosittain(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja);} 
             else { data = _query2.haeJoukkueet(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja); }
+            if (data == ""){return StatusCode(404); }
+            return Ok(data);
+        }
+
+        [HttpGet("tuomarit")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetTuomarit(
+          int kaudetAlku=2000,
+          int kaudetLoppu=2020, 
+          Boolean vuosittain=false,
+          string kotijoukkue = "",
+          string vierasjoukkue = "",
+          string lukkari = ""
+        )
+        {   
+            Console.WriteLine(Request.Query);
+            Console.WriteLine(Request.QueryString);
+            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            string data = "";
+            data = _query2.haeTuomarit(kaudetAlku,kaudetLoppu,vuosittain,kotijoukkue,vierasjoukkue, lukkari);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
