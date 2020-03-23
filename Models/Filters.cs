@@ -13,6 +13,7 @@ namespace pesisBackend
             string joukkueFilter = "";
             if (!String.IsNullOrEmpty(joukkue)){
                 joukkueFilter = "AND j.joukkue = @joukkue";
+
             }
             return joukkueFilter;
         }
@@ -28,8 +29,8 @@ namespace pesisBackend
             } else if (koti == "Eritelty") {
                 kotiErittely = @"
                 CASE ot.joukkue_id
-                WHEN o.koti_id THEN 'Koti'
-	            WHEN o.vieras_id THEN 'Vieras'
+                    WHEN o.koti_id THEN 'Koti'
+	                WHEN o.vieras_id THEN 'Vieras'
                 END `Koti/Vieras`,";
                 kotiGroup = $", `Koti/Vieras`";
             }
@@ -228,29 +229,31 @@ namespace pesisBackend
             if (!String.IsNullOrEmpty(lukkari))
             {
                 Select = @"
-                , (SELECT
-                nimi lukkari,
-                p.pelaaja_id lukkari_id,
-                kotiB,
-                kotiB!=1 vierasB,
-                po.ottelu_id ottelu_id
-                FROM puoli_ottelu po, ottelu_tilasto ot, pelaaja p
-                WHERE po.tila != 'ottelu ei ole vielä alkanut'
-                AND po.joukkue_id = ot.joukkue_id
-                AND ot.pelaaja_id = p.pelaaja_id
-                AND po.ottelu_id = ot.ottelu_id
-                AND ot.upp = 'L') l
+INNER JOIN ottelu_tilasto ot ON ot.ottelu_id = o.ottelu_id AND upp = 'L'
+INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
                 ";
                 Group = ", Lukkari";
-                Filter = @" AND l.ottelu_id = o.ottelu_id ";
+                Filter = @"";
                 Erittely = @"
-                lukkari Lukkari,
-                SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) `Lukkarin voitot`,
-                SUM(kp < vp AND kotiB) + SUM(kp > vp AND vierasB) `Lukkarin tappiot`,
-                ROUND(100.0*( SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) )/COUNT(DISTINCT o.ottelu_id),2) `Lukkarin voitto-%`,
-                ROUND(100.0*( SUM(kp > vp AND kotiB) + SUM(kp < vp AND vierasB) )/COUNT( o.ottelu_id),2) `Lukkarin voitto-%`,
-                SUM(kotiB) `Ottelut Lukkarin Kotona`,
-                SUM(vierasB) `Ottelut Lukkarin vieraissa`,";
+                p.nimi Lukkari,
+                SUM(kp > vp AND ot.joukkue_id = o.koti_id) + SUM(kp < vp AND ot.joukkue_id = o.vieras_id) `Lukkarin voitot`,
+                SUM(kp < vp AND ot.joukkue_id = o.koti_id) + SUM(kp > vp AND ot.joukkue_id = o.vieras_id) `Lukkarin tappiot`,
+                ROUND(100.0*( SUM(kp > vp AND ot.joukkue_id = o.koti_id) + SUM(kp < vp AND ot.joukkue_id = o.vieras_id) )/COUNT(DISTINCT o.ottelu_id),2) `Lukkarin voitto-%`,
+                SUM( ot.joukkue_id = o.koti_id) `Ottelut Lukkarin Kotona`,
+                SUM( ot.joukkue_id = o.vieras_id) `Ottelut Lukkarin vieraissa`,
+                ROUND( 1.0*SUM( 
+                    CASE 
+                        WHEN ot.joukkue_id = o.koti_id THEN vttotv
+                        WHEN ot.joukkue_id = o.vieras_id THEN vttotk
+                    END
+                ) / COUNT( DISTINCT o.ottelu_id ),2) `Lukkarin VT / ott`,
+                ROUND( 1.0*SUM( 
+                    CASE 
+                        WHEN ot.joukkue_id = o.koti_id THEN vtv
+                        WHEN ot.joukkue_id = o.vieras_id THEN vtk
+                    END 
+                ) / COUNT( DISTINCT o.ottelu_id ),2) `Lukkarin VT juoksut / ott`,
+                ";
                 if (lukkari != "Eritelty"){
                     Filter += " AND Lukkari = @lukkari ";
                 }
@@ -276,6 +279,17 @@ namespace pesisBackend
                 erittely2 = "";
             }
             return new Tuple<string, string, string>(group,erittely,erittely2);
+        }
+        public Tuple<string, string, string> sarjavaihe(string sarjavaihe){
+            string group = ", sarjavaihe";
+            string erittely = "sarjavaihe,";
+            string filter = "AND sarjavaihe = @sarjavaihe";
+            if (String.IsNullOrEmpty(sarjavaihe)) {
+                group = "";
+                erittely = "";
+                filter = "";
+            }
+            return new Tuple<string, string, string>(group,filter,erittely);
         }
     }
 }

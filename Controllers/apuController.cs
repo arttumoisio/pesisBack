@@ -19,12 +19,14 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetJoukkueet(
-          int kaudetAlku=2000,
+          int kaudetAlku=1994,
           int kaudetLoppu=2019
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            Console.WriteLine(kaudetAlku.ToString(),kaudetLoppu.ToString());
+            Console.WriteLine(Request.Body);
+            Console.WriteLine(Request.Query);
+            Console.WriteLine(Request.QueryString);
             string data = _query2.apuJoukkueet(kaudetAlku,kaudetLoppu);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
@@ -44,10 +46,25 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetVaiheet(
+          int kaudetAlku=1994,
+          int kaudetLoppu=2019
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuSarjaVaiheet();
+            string data = _query2.apuSarjaVaiheet(kaudetAlku,kaudetLoppu);
+            if (data == ""){return StatusCode(404); }
+            return Ok(data);
+        }
+        [HttpGet("sarja")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetSarjat(
+          int kaudetAlku=1994,
+          int kaudetLoppu=2019
+        )
+        {
+            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            string data = _query2.apuSarjat(kaudetAlku,kaudetLoppu);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
@@ -77,11 +94,14 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetLukkarit(
-            int kaudetAlku = 2000,
+            int kaudetAlku = 1994,
             int kaudetLoppu = 2020
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            Console.WriteLine(Request.Body);
+            Console.WriteLine(Request.Query);
+            Console.WriteLine(Request.QueryString);
             string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu);
             if (data == ""){return StatusCode(404); }
             return Ok(data);

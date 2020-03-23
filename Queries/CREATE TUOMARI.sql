@@ -1,3 +1,4 @@
+DROP TABLE tuomari;
 CREATE TABLE IF NOT EXISTS tuomari(
     tuomari_id INTEGER NOT NULL PRIMARY KEY,
     tuomari TEXT NOT NULL
@@ -14,3 +15,4 @@ SELECT DISTINCT
 st_id,
 syottotuomari
 FROM ottelu;
+

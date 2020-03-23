@@ -1,3 +1,4 @@
+DROP TABLE puoli_ottelu;
 CREATE TABLE puoli_ottelu (
   koti TEXT NOT NULL,
   kotib INTEGER NOT NULL,
@@ -39,17 +40,17 @@ CREATE TABLE puoli_ottelu (
   kentta TEXT NOT NULL,
   paikkakunta TEXT NOT NULL,
   katsojamaara TEXT NOT NULL,
-  olosuhteet TEXT NOT NULL,
+  olosuhteet TEXT,
   pt_id INTEGER NOT NULL,
   pelituomari TEXT NOT NULL,
   st_id INTEGER NOT NULL,
   syottotuomari TEXT NOT NULL,
-  `2-tuomari` TEXT NOT NULL,
-  `3-tuomari` TEXT NOT NULL,
-  takatuomari TEXT NOT NULL,
-  kirjuri TEXT NOT NULL,
+  `2-tuomari` TEXT,
+  `3-tuomari` TEXT,
+  takatuomari TEXT,
+  kirjuri TEXT,
   tila TEXT NOT NULL,
-  muuta TEXT NOT NULL,
+  muuta TEXT,
   PRIMARY KEY (kotib,ottelu_id)
-  )
+  );
   

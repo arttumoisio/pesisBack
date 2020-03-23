@@ -1,3 +1,58 @@
+DROP TABLE puoli_ottelu;
+CREATE TABLE puoli_ottelu (
+  koti TEXT NOT NULL,
+  kotib INTEGER NOT NULL,
+  ottelu_id INTEGER NOT NULL,
+  kausi TEXT NOT NULL,
+  sarja TEXT NOT NULL,
+  sarjajako TEXT NOT NULL,
+  sarjavaihe TEXT NOT NULL,
+  ottelu TEXT NOT NULL,
+  tulos TEXT NOT NULL,
+  p TEXT NOT NULL,
+  `1j` TEXT NOT NULL,
+  `2j` TEXT NOT NULL,
+  s  TEXT NOT NULL,
+  k  TEXT NOT NULL,
+  `3p`  TEXT NOT NULL,
+  `2p`  TEXT NOT NULL,
+  `1p`  TEXT NOT NULL,
+  `0p`  TEXT NOT NULL,
+    vp TEXT NOT NULL,
+  `v1j` TEXT NOT NULL,
+  `v2j` TEXT NOT NULL,
+  vs  TEXT NOT NULL,
+  vk  TEXT NOT NULL,
+  `v3p`  TEXT NOT NULL,
+  `v2p`  TEXT NOT NULL,
+  `v1p`  TEXT NOT NULL,
+  `v0p`  TEXT NOT NULL,
+  joukkue_id  INTEGER NOT NULL,
+  joukkue TEXT NOT NULL,
+  vastustaja_id INTEGER NOT NULL,
+  vastustaja TEXT NOT NULL,
+  tyyppi TEXT NOT NULL,
+  aloittaja TEXT NOT NULL,
+  svaloittaja TEXT NOT NULL,
+  pvm TEXT NOT NULL,
+  alk_aika TEXT NOT NULL,
+  paat_aika TEXT NOT NULL,
+  kentta TEXT,
+  paikkakunta TEXT,
+  katsojamaara TEXT NOT NULL,
+  olosuhteet TEXT,
+  pt_id INTEGER NOT NULL,
+  pelituomari TEXT,
+  st_id INTEGER NOT NULL,
+  syottotuomari TEXT,
+  `2-tuomari` TEXT,
+  `3-tuomari` TEXT,
+  takatuomari TEXT,
+  kirjuri TEXT,
+  tila TEXT NOT NULL,
+  muuta TEXT,
+  PRIMARY KEY (kotib,ottelu_id)
+);
 INSERT OR REPLACE INTO puoli_ottelu 
 SELECT
   'koti',
@@ -53,7 +108,8 @@ SELECT
   muuta   
   
 
-FROM ottelu;
+FROM ottelu
+WHERE tila != 'ottelu ei ole vielä alkanut';
 
 INSERT OR REPLACE INTO puoli_ottelu 
 SELECT
@@ -110,4 +166,5 @@ SELECT
   muuta   
   
 
-FROM ottelu;
+FROM ottelu
+WHERE tila != 'ottelu ei ole vielä alkanut';

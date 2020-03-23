@@ -1,4 +1,4 @@
-INSERT INTO puoli_ottelu 
+INSERT OR IGNORE INTO puoli_ottelu 
 SELECT
   'koti',
   1,
@@ -55,7 +55,7 @@ SELECT
 
 FROM ottelu;
 
-INSERT INTO puoli_ottelu 
+INSERT OR IGNORE INTO puoli_ottelu 
 SELECT
   'vieras',
   0,
