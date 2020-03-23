@@ -291,5 +291,22 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             }
             return new Tuple<string, string, string>(group,filter,erittely);
         }
+        public Tuple<string,string,string> sarja(string sarja){
+            string group = "";
+            string filter = "AND sarja = @sarja";
+            string erittely = "";
+
+            if (String.IsNullOrEmpty(sarja)) {
+                group = "";
+                filter = "";
+                erittely = "";
+            }
+            if(sarja == "Eritelty"){
+                group = ", sarja";
+                erittely = "sarja Sarja,";
+            }
+
+            return new Tuple<string, string, string>(group,filter,erittely);
+        }
     }
 }

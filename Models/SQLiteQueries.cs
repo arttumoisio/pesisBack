@@ -778,10 +778,12 @@ namespace pesisBackend
         }
         public string apuLukkarit(
             int vuosialkaen, 
-            int vuosiloppuen)
+            int vuosiloppuen,
+            string sarja = "")
         {
+            string sarjaFilter = filters.sarja(sarja).Item2;
             SQLiteCommand dbCmd = _con.CreateCommand();
-            string query = @"
+            string query = $@"
             BEGIN;
             SELECT DISTINCT
             nimi lukkari
@@ -791,6 +793,7 @@ namespace pesisBackend
             AND o.ottelu_id = ot.ottelu_id
             AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             AND upp='L'
+            {sarjaFilter}
             GROUP by p.pelaaja_id
             ORDER by lukkari desc;
             COMMIT;
@@ -799,6 +802,7 @@ namespace pesisBackend
             dbCmd.CommandText = query;
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
+            dbCmd.Parameters.AddWithValue("@sarja", sarja);
 
             return toteutaKysely(dbCmd);
         }
