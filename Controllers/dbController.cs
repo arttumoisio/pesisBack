@@ -20,14 +20,10 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetTest(
-          int kaudetAlku=2000,
-          int kaudetLoppu=2020
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuJoukkueet(kaudetAlku,kaudetLoppu);
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            return Ok("Serveri toimii");
         }
         
         [HttpGet("pelaajat")]
@@ -46,11 +42,14 @@ namespace pesisBackend.Controllers
 
         )
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
             if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja,joukkue,sarja,sarjavaihe);} 
             else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja,joukkue,sarja,sarjavaihe); }
             if (data == ""){return StatusCode(404); }
+            Console.WriteLine("PELAAJIIN AIKAA MENI: {0}",sw.Elapsed);
             return Ok(data);
         }
 
@@ -69,11 +68,14 @@ namespace pesisBackend.Controllers
           string vastustaja=""
         )
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             string data = "";
             if (vuosittain) { data = _query2.haeJoukkueetVuosittain(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja,sarja,sarjavaihe);} 
             else { data = _query2.haeJoukkueet(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja,sarja,sarjavaihe); }
             if (data == ""){return StatusCode(404); }
+            Console.WriteLine("JOUKKUEISIIN AIKAA MENI: {0}",sw.Elapsed);
             return Ok(data);
         }
 
@@ -103,6 +105,7 @@ namespace pesisBackend.Controllers
             data = _query2.haeTuomarit(kaudetAlku,kaudetLoppu,vuosittain,kotijoukkue,vierasjoukkue, lukkari, STPT,sarja,sarjavaihe);
             sw.Stop();
             Console.WriteLine("TUOMAREIHIN AIKAA MENI: {0}",sw.Elapsed);
+            
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }

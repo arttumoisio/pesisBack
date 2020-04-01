@@ -1,4 +1,4 @@
-DROP TABLE puoli_ottelu;
+DROP TABLE IF EXISTS puoli_ottelu;
 CREATE TABLE puoli_ottelu (
   koti TEXT NOT NULL,
   kotib INTEGER NOT NULL,

@@ -1,4 +1,4 @@
-DROP TABLE tuomari;
+DROP TABLE IF EXISTS tuomari;
 CREATE TABLE IF NOT EXISTS tuomari(
     tuomari_id INTEGER NOT NULL PRIMARY KEY,
     tuomari TEXT NOT NULL

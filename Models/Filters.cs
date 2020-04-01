@@ -281,12 +281,16 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             return new Tuple<string, string, string>(group,erittely,erittely2);
         }
         public Tuple<string, string, string> sarjavaihe(string sarjavaihe){
-            string group = ", sarjavaihe";
-            string erittely = "sarjavaihe,";
-            string filter = "AND sarjavaihe = @sarjavaihe";
+            string group = ", sarjajako";
+            string erittely = "";
+            string filter = "AND sarjajako = @sarjavaihe";
             if (String.IsNullOrEmpty(sarjavaihe)) {
                 group = "";
                 erittely = "";
+                filter = "";
+            }
+            if (sarjavaihe == "Eritelty") {
+                erittely = "sarjajako Sarjavaihe,";
                 filter = "";
             }
             return new Tuple<string, string, string>(group,filter,erittely);
@@ -303,6 +307,7 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             }
             if(sarja == "Eritelty"){
                 group = ", sarja";
+                filter = "";
                 erittely = "sarja Sarja,";
             }
 

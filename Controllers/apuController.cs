@@ -19,15 +19,17 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetJoukkueet(
-          int kaudetAlku=1994,
-          int kaudetLoppu=2019
+            int kaudetAlku=1994,
+            int kaudetLoppu=2019,
+            string sarja = "",
+            string sarjavaihe = ""
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             Console.WriteLine(Request.Body);
             Console.WriteLine(Request.Query);
             Console.WriteLine(Request.QueryString);
-            string data = _query2.apuJoukkueet(kaudetAlku,kaudetLoppu);
+            string data = _query2.apuJoukkueet(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
@@ -95,14 +97,16 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(404)]
         public IActionResult GetLukkarit(
             int kaudetAlku = 1994,
-            int kaudetLoppu = 2020
+            int kaudetLoppu = 2020,
+            string sarja = "",
+            string sarjavaihe = ""
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             Console.WriteLine(Request.Body);
             Console.WriteLine(Request.Query);
             Console.WriteLine(Request.QueryString);
-            string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu);
+            string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu,sarja);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
