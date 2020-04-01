@@ -53,7 +53,7 @@ namespace pesisBackend.Controllers
         )
         {
             Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuSarjaVaiheet(kaudetAlku,kaudetLoppu);
+            string data = _query2.apusarjajaot(kaudetAlku,kaudetLoppu);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
@@ -106,7 +106,7 @@ namespace pesisBackend.Controllers
             Console.WriteLine(Request.Body);
             Console.WriteLine(Request.Query);
             Console.WriteLine(Request.QueryString);
-            string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu,sarja);
+            string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
             if (data == ""){return StatusCode(404); }
             return Ok(data);
         }
