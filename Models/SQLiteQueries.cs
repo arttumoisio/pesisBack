@@ -74,27 +74,10 @@ namespace pesisBackend
 
         )
         {
-            
-            Tuple<string,string,string> sv = filters.sarjajako(sarjajako);
-            string sarjajakoGroup = sv.Item1;
-            string sarjajakoFilter = sv.Item2;
-            string sarjajakoErittely = sv.Item3;
-
-            Tuple<string,string,string> k = filters.koti(koti);
-            string kotiGroup = k.Item1;
-            string kotiFilter = k.Item2;
-            string kotiErittely = k.Item3;
-
-            Tuple<string,string,string> t = filters.tulos(tulos);
-            string tulosGroup = t.Item1;
-            string tulosFilter = t.Item2;
-            string tulosErittely = t.Item3;
-
-            Tuple<string,string,string> v = filters.vastustaja(vastustaja);
-            string vastustajaGroup = v.Item1;
-            string vastustajaFilter = v.Item2;
-            string vastustajaErittely = v.Item3;
-            
+            Modifier sarjajakoMod = filters.sarjajako(sarjajako);
+            Modifier kotiMod = filters.koti(koti);
+            Modifier tulosMod = filters.tulos(tulos);
+            Modifier vastustajaMod = filters.vastustaja(vastustaja);
             string joukkueFilter = filters.joukkue(joukkue);
 
             string query = $@"
@@ -103,10 +86,10 @@ namespace pesisBackend
             p.nimi Nimi,
             kausi Kausi,
             joukkue Joukkue,
-            {sarjajakoErittely}
-            {kotiErittely}
-            {tulosErittely}
-            {vastustajaErittely}
+            {sarjajakoMod.Erittely}
+            {kotiMod.Erittely}
+            {tulosMod.Erittely}
+            {vastustajaMod.Erittely}
             COUNT(o.ottelu_id) Ottelut,
             SUM(ku) Kunnarit, 
             SUM(ly) Lyödyt,
@@ -118,7 +101,7 @@ namespace pesisBackend
             SUM(kl1) `KL->1`, 
             SUM(kl2) `KL->2`, 
             SUM(kl3) `KL->3`,
-            ROUND(1.0*SUM(
+            ROUND(100.0*SUM(
                 CASE 
                     WHEN koti_id = ot.joukkue_id THEN kp > vp
                     WHEN vieras_id = ot.joukkue_id THEN vp > kp
@@ -188,33 +171,26 @@ namespace pesisBackend
             INNER JOIN pelaaja p ON ot.pelaaja_id = p.pelaaja_id 
             INNER JOIN joukkue j ON ot.joukkue_id = j.joukkue_id
             WHERE 1
-            {kotiFilter}
-            {sarjajakoFilter}
-            {tulosFilter}
-            {vastustajaFilter}
+            {kotiMod.Filter}
+            {sarjajakoMod.Filter}
+            {tulosMod.Filter}
+            {vastustajaMod.Filter}
             {joukkueFilter}
             
             GROUP BY ot.pelaaja_id, kausi
-            {kotiGroup}
-            {tulosGroup}
-            {vastustajaGroup}
-            {sarjajakoGroup}
+            {kotiMod.Group}
+            {tulosMod.Group}
+            {vastustajaMod.Group}
+            {sarjajakoMod.Group}
             ORDER BY `Tehopist. yht` DESC;
             COMMIT;
             ";
 
             SQLiteCommand dbCmd = _con.CreateCommand();
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
-            dbCmd.Parameters.AddWithValue("@vastustaja", vastustaja);
-            dbCmd.Parameters.AddWithValue("@joukkue", joukkue);
-            dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
-            dbCmd.Parameters.AddWithValue("@sarja", sarja);
+            addTeamParams(vuosialkaen, vuosiloppuen, joukkue, vastustaja, sarja, sarjajako, dbCmd);
 
-            Console.WriteLine($"Tyhjä? {vastustajaErittely}");
             return toteutaKysely(dbCmd);
-
         }
         public string haePelaajat(
             int vuosialkaen, 
@@ -227,38 +203,21 @@ namespace pesisBackend
             string sarjajako=""
         )
         {            
-            Tuple<string,string,string> sv = filters.sarjajako(sarjajako);
-            string sarjajakoGroup = sv.Item1;
-            string sarjajakoFilter = sv.Item2;
-            string sarjajakoErittely = sv.Item3;
-
-            Tuple<string,string,string> k = filters.koti(koti);
-            string kotiGroup = k.Item1;
-            string kotiFilter = k.Item2;
-            string kotiErittely = k.Item3;
-            
-            Tuple<string,string,string> t = filters.tulos(tulos);
-            string tulosGroup = t.Item1;
-            string tulosFilter = t.Item2;
-            string tulosErittely = t.Item3;
-
-            Tuple<string,string,string> v = filters.vastustaja(vastustaja);
-            string vastustajaGroup = v.Item1;
-            string vastustajaFilter = v.Item2;
-            string vastustajaErittely = v.Item3;
-
+            Modifier sarjajakoMod = filters.sarjajako(sarjajako);
+            Modifier kotiMod = filters.koti(koti);
+            Modifier tulosMod = filters.tulos(tulos);
+            Modifier vastustajaMod = filters.vastustaja(vastustaja);
             string joukkueFilter = filters.joukkue(joukkue);
-            
                         
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
             BEGIN;
             SELECT  
             p.nimi Nimi,
-            {kotiErittely}
-            {tulosErittely}
-            {vastustajaErittely}
-            {sarjajakoErittely}
+            {kotiMod.Erittely}
+            {tulosMod.Erittely}
+            {vastustajaMod.Erittely}
+            {sarjajakoMod.Erittely}
             COUNT(o.ottelu_id) Ottelut,
             ROUND(100.0*SUM(
                 CASE 
@@ -353,28 +312,22 @@ namespace pesisBackend
             INNER JOIN pelaaja p ON ot.pelaaja_id = p.pelaaja_id 
             INNER JOIN joukkue j ON ot.joukkue_id = j.joukkue_id
             WHERE 1
-            {sarjajakoFilter}
-            {kotiFilter}
-            {tulosFilter}
-            {vastustajaFilter}
+            {sarjajakoMod.Filter}
+            {kotiMod.Filter}
+            {tulosMod.Filter}
+            {vastustajaMod.Filter}
             {joukkueFilter}
             GROUP BY ot.pelaaja_id 
-            {kotiGroup} 
-            {tulosGroup}
-            {vastustajaGroup}
-            {sarjajakoGroup}
+            {kotiMod.Group} 
+            {tulosMod.Group}
+            {vastustajaMod.Group}
+            {sarjajakoMod.Group}
             ORDER BY `Tehopist. yht` DESC;
             COMMIT;
             ";
 
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
-            dbCmd.Parameters.AddWithValue("@joukkue", joukkue);
-            dbCmd.Parameters.AddWithValue("@vastustaja", vastustaja);
-            dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
-            dbCmd.Parameters.AddWithValue("@sarja", sarja);
-
+            addTeamParams(vuosialkaen, vuosiloppuen, joukkue, vastustaja, sarja, sarjajako, dbCmd);
             return toteutaKysely(dbCmd);
         }
         public string haeJoukkueetVuosittain(
@@ -387,37 +340,21 @@ namespace pesisBackend
             string sarja="",
             string sarjajako="" )
         {
-            string joukkueFilter = filters.joukkue(joukkue);
-                        
-            Tuple<string,string,string> sv = filters.sarjajako(sarjajako);
-            string sarjajakoGroup = sv.Item1;
-            string sarjajakoFilter = sv.Item2;
-            string sarjajakoErittely = sv.Item3;
-
-            Tuple<string,string,string> k = filters.koti(koti, true);
-            string kotiGroup = k.Item1;
-            string kotiFilter = k.Item2;
-            string kotiErittely = k.Item3;
-            
-            Tuple<string,string,string> t = filters.tulos(tulos, true);
-            string tulosGroup = t.Item1;
-            string tulosFilter = t.Item2;
-            string tulosErittely = t.Item3;
-
-            Tuple<string,string,string> v = filters.vastustaja(vastustaja, true);
-            string vastustajaGroup = v.Item1;
-            string vastustajaFilter = v.Item2;
-            string vastustajaErittely = v.Item3;
+            string joukkueFilter = filters.joukkue(joukkue);              
+            Modifier sarjajakoMod = filters.sarjajako(sarjajako);
+            Modifier kotiMod = filters.koti(koti, true);
+            Modifier tulosMod = filters.tulos(tulos, true);
+            Modifier vastustajaMod = filters.vastustaja(vastustaja, true);
 
             string query = $@"
             BEGIN;
             SELECT 
             j.joukkue Joukkue,
             kausi Kausi,
-            {sarjajakoErittely}
-            {kotiErittely}
-            {tulosErittely}
-            {vastustajaErittely}
+            {sarjajakoMod.Erittely}
+            {kotiMod.Erittely}
+            {tulosMod.Erittely}
+            {vastustajaMod.Erittely}
             count(*) Ottelut,
             SUM(p) Pisteet,
             SUM(`3p`) `3p`,
@@ -450,28 +387,23 @@ namespace pesisBackend
                 AND sarja = @sarja
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             WHERE 1
-            {sarjajakoFilter}
+            {sarjajakoMod.Filter}
             {joukkueFilter}
-            {kotiFilter}
-            {tulosFilter}
-            {vastustajaFilter}
+            {kotiMod.Filter}
+            {tulosMod.Filter}
+            {vastustajaMod.Filter}
             GROUP BY po.joukkue ,kausi
-            {kotiGroup} 
-            {tulosGroup}
-            {vastustajaGroup}
-            {sarjajakoGroup}
+            {kotiMod.Group} 
+            {tulosMod.Group}
+            {vastustajaMod.Group}
+            {sarjajakoMod.Group}
             ORDER BY Pisteet DESC;
             COMMIT;
             ";
 
             SQLiteCommand dbCmd = _con.CreateCommand();
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
-            dbCmd.Parameters.AddWithValue("@joukkue", joukkue);
-            dbCmd.Parameters.AddWithValue("@vastustaja", vastustaja);
-            dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
-            dbCmd.Parameters.AddWithValue("@sarja", sarja);
+            addTeamParams(vuosialkaen, vuosiloppuen, joukkue, vastustaja, sarja, sarjajako, dbCmd);
 
             return toteutaKysely(dbCmd);
         }
@@ -486,36 +418,20 @@ namespace pesisBackend
             string sarjajako="" )
         {
             string joukkueFilter = filters.joukkue(joukkue);
-                        
-            Tuple<string,string,string> sv = filters.sarjajako(sarjajako);
-            string sarjajakoGroup = sv.Item1;
-            string sarjajakoFilter = sv.Item2;
-            string sarjajakoErittely = sv.Item3;
-
-            Tuple<string,string,string> k = filters.koti(koti, true);
-            string kotiGroup = k.Item1;
-            string kotiFilter = k.Item2;
-            string kotiErittely = k.Item3;
-            
-            Tuple<string,string,string> t = filters.tulos(tulos, true);
-            string tulosGroup = t.Item1;
-            string tulosFilter = t.Item2;
-            string tulosErittely = t.Item3;
-
-            Tuple<string,string,string> v = filters.vastustaja(vastustaja, true);
-            string vastustajaGroup = v.Item1;
-            string vastustajaFilter = v.Item2;
-            string vastustajaErittely = v.Item3;
+            Modifier sarjajakoMod = filters.sarjajako(sarjajako);
+            Modifier kotiMod = filters.koti(koti, true);
+            Modifier tulosMod = filters.tulos(tulos, true);
+            Modifier vastustajaMod = filters.vastustaja(vastustaja, true);
 
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
             BEGIN;
             SELECT 
             j.joukkue Joukkue,
-            {sarjajakoErittely}
-            {kotiErittely}
-            {tulosErittely}
-            {vastustajaErittely}
+            {sarjajakoMod.Erittely}
+            {kotiMod.Erittely}
+            {tulosMod.Erittely}
+            {vastustajaMod.Erittely}
             count(*) Ottelut,
             SUM(p) Pisteet,
             SUM(`3p`) `3p`,
@@ -549,30 +465,36 @@ namespace pesisBackend
                 AND sarja = @sarja
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
             WHERE 1
-            {sarjajakoFilter}
+            {sarjajakoMod.Filter}
             {joukkueFilter}
-            {kotiFilter}
-            {tulosFilter}
-            {vastustajaFilter}
+            {kotiMod.Filter}
+            {tulosMod.Filter}
+            {vastustajaMod.Filter}
             GROUP BY j.joukkue
-            {kotiGroup} 
-            {tulosGroup}
-            {vastustajaGroup}
-            {sarjajakoGroup}
+            {kotiMod.Group} 
+            {tulosMod.Group}
+            {vastustajaMod.Group}
+            {sarjajakoMod.Group}
             ORDER BY Pisteet DESC;
             COMMIT;
             ";
 
             dbCmd.CommandText = query;
+            addTeamParams(vuosialkaen, vuosiloppuen, joukkue, vastustaja, sarja, sarjajako, dbCmd);
+
+            return toteutaKysely(dbCmd);
+        }
+
+        private static void addTeamParams(int vuosialkaen, int vuosiloppuen, string joukkue, string vastustaja, string sarja, string sarjajako, SQLiteCommand dbCmd)
+        {
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
             dbCmd.Parameters.AddWithValue("@joukkue", joukkue);
             dbCmd.Parameters.AddWithValue("@vastustaja", vastustaja);
             dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
             dbCmd.Parameters.AddWithValue("@sarja", sarja);
-
-            return toteutaKysely(dbCmd);
         }
+
         public string haeTuomarit(
             int vuosialkaen, 
             int vuosiloppuen,
@@ -584,49 +506,24 @@ namespace pesisBackend
             string sarja="",
             string sarjajako=""
         )
-        {   
-            Console.WriteLine(vuosialkaen);
-            Console.WriteLine(vuosiloppuen);
+        {
             string STPTFilter = filters.stpt(STPT);
-                        
-            Tuple<string,string,string> sv = filters.sarjajako(sarjajako);
-            string sarjajakoGroup = sv.Item1;
-            string sarjajakoFilter = sv.Item2;
-            string sarjajakoErittely = sv.Item3;
-
-            Tuple<string,string,string> vu = filters.vuosittain(vuosittain);
-            string vuosittainGroup = vu.Item1;
-            string vuosittainErittely = vu.Item2;
-            string vuosittainErittely2 = vu.Item3;
-
-            Tuple<string,string,string> k = filters.kotiJoukkue(kotijoukkue);
-            string kotiGroup = k.Item1;
-            string kotiFilter = k.Item2;
-            string kotiErittely = k.Item3;
+            Modifier sarjajakoMod = filters.sarjajako(sarjajako);
+            Modifier vuosittainMod = filters.vuosittain(vuosittain);
+            Modifier kotiMod = filters.kotiJoukkue(kotijoukkue);
+            Modifier vierasMod = filters.vierasJoukkue(vierasjoukkue);
+            Modifier lukkariMod = filters.lukkari(lukkari);
             
-            Tuple<string,string,string> v = filters.vierasJoukkue(vierasjoukkue);
-            string vierasGroup = v.Item1;
-            string vierasFilter = v.Item2;
-            string vierasErittely = v.Item3;
-
-            Tuple<string,string,string, string> l = filters.lukkari(lukkari);
-            string lukkariGroup = l.Item1;
-            string lukkariFilter = l.Item2;
-            string lukkariErittely = l.Item3;
-            string lukkariSelect = l.Item4;
-            // string explain = "";
-            // if ( STPT == "ST"){explain = "EXPLAIN QUERY PLAN";}
-            // if ( STPT == "PT"){explain = "EXPLAIN";} 
             string query = $@"
             BEGIN;
             SELECT 
             tuomari Tuomari,
             COUNT(DISTINCT o.ottelu_id) Ottelut,
-            {vuosittainErittely}
-            {sarjajakoErittely}
-            {kotiErittely}
-            {vierasErittely}
-            {lukkariErittely}
+            {vuosittainMod.Erittely}
+            {sarjajakoMod.Erittely}
+            {kotiMod.Erittely}
+            {vierasMod.Erittely}
+            {lukkariMod.Erittely}
             SUM(kp>vp)  Kotivoitto,
             SUM(kp<vp)  Vierasvoitto,
             ROUND( 100.0*SUM(kp>vp)/COUNT(DISTINCT o.ottelu_id),2)  `Kotivoitto-%`,
@@ -639,7 +536,7 @@ namespace pesisBackend
             ROUND( 1.0*SUM( vtv ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut vieras`,
             SUM(tuomari = pelituomari) PT,
             SUM(tuomari = syottotuomari) ST
-            {vuosittainErittely2}
+            {vuosittainMod.Erittely2}
 
             FROM ottelu o
             INNER JOIN (SELECT DISTINCT tuomari FROM tuomari) t 
@@ -664,19 +561,19 @@ namespace pesisBackend
                     AND sarja = @sarja
                 GROUP BY oo.ottelu_id
             ) vt ON vt.ottelu_id = o.ottelu_id
-            {lukkariSelect}
+            {lukkariMod.Select}
             WHERE 1
-            {sarjajakoFilter}
-            {kotiFilter}
-            {vierasFilter}
-            {lukkariFilter}
+            {sarjajakoMod.Filter}
+            {kotiMod.Filter}
+            {vierasMod.Filter}
+            {lukkariMod.Filter}
             {STPTFilter}
             GROUP BY tuomari
-            {vuosittainGroup}
-            {kotiGroup}
-            {vierasGroup}
-            {lukkariGroup}
-            {sarjajakoGroup}
+            {vuosittainMod.Group}
+            {kotiMod.Group}
+            {vierasMod.Group}
+            {lukkariMod.Group}
+            {sarjajakoMod.Group}
             ORDER BY 2 DESC
             ;
             COMMIT;
@@ -684,6 +581,13 @@ namespace pesisBackend
 
             SQLiteCommand dbCmd = _con.CreateCommand();
             dbCmd.CommandText = query;
+            addTuomariParams(vuosialkaen, vuosiloppuen, kotijoukkue, vierasjoukkue, lukkari, sarja, sarjajako, dbCmd);
+
+            return toteutaKysely(dbCmd);
+        }
+
+        private static void addTuomariParams(int vuosialkaen, int vuosiloppuen, string kotijoukkue, string vierasjoukkue, string lukkari, string sarja, string sarjajako, SQLiteCommand dbCmd)
+        {
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
             dbCmd.Parameters.AddWithValue("@kotijoukkue", kotijoukkue);
@@ -691,9 +595,8 @@ namespace pesisBackend
             dbCmd.Parameters.AddWithValue("@lukkari", lukkari);
             dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
             dbCmd.Parameters.AddWithValue("@sarja", sarja);
-
-            return toteutaKysely(dbCmd);
         }
+
         public string apuJoukkueet(
             int vuosialkaen, 
             int vuosiloppuen,
@@ -704,11 +607,11 @@ namespace pesisBackend
         {
             Console.WriteLine($@"{vuosialkaen}, {vuosiloppuen}, {sarja}, {sarjajako}, {koti}");
             string kotiFilter = "AND (joukkue_id = koti_id OR joukkue_id = vieras_id)";
-            if (koti=="koti"){kotiFilter="AND joukkue_id = koti_id";}
-            if (koti=="vieras"){kotiFilter="AND joukkue_id = vieras_id";}
-
-            string sarjaFilter = filters.sarja(sarja).Item2;
+            if (koti == "koti") { kotiFilter = "AND joukkue_id = koti_id"; }
+            if (koti == "vieras") { kotiFilter = "AND joukkue_id = vieras_id"; }
+            string sarjaFilter = filters.sarja(sarja).Filter;
             string sarjajakoFilter = String.IsNullOrEmpty(sarjajako) || sarjajako == "Eritelty" ? "" : "AND sarjajako = @sarjajako";
+            
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
             BEGIN;
@@ -728,13 +631,19 @@ namespace pesisBackend
             COMMIT;
             ";
             dbCmd.CommandText = query;
+            addApuParams(dbCmd, vuosialkaen, vuosiloppuen, sarja, sarjajako);
+
+            return toteutaKysely(dbCmd);
+        }
+
+        private static void addApuParams(SQLiteCommand dbCmd, int vuosialkaen, int vuosiloppuen, string sarja = "", string sarjajako = "" )
+        {
             dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
             dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
             dbCmd.Parameters.AddWithValue("@sarja", sarja);
             dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
-
-            return toteutaKysely(dbCmd);
         }
+
         public string apuVuodet()
         {
             SQLiteCommand dbCmd = _con.CreateCommand();
@@ -766,8 +675,7 @@ namespace pesisBackend
             COMMIT;
             ";
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
+            addApuParams(dbCmd, vuosialkaen, vuosiloppuen);
 
             return toteutaKysely(dbCmd);
         }
@@ -786,8 +694,7 @@ namespace pesisBackend
             COMMIT;
             ";
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
+            addApuParams(dbCmd, vuosialkaen, vuosiloppuen);
 
             return toteutaKysely(dbCmd);
         }
@@ -829,7 +736,7 @@ namespace pesisBackend
             string sarja = "",
             string sarjajako = "")
         {
-            string sarjaFilter = filters.sarja(sarja).Item2;
+            string sarjaFilter = filters.sarja(sarja).Filter;
             string sarjajakoFilter = String.IsNullOrEmpty(sarjajako) || sarjajako == "Eritelty" ? "" : "AND sarjajako = @sarjajako";
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
@@ -850,10 +757,7 @@ namespace pesisBackend
 
             ";
             dbCmd.CommandText = query;
-            dbCmd.Parameters.AddWithValue("@vuosialkaen", vuosialkaen);
-            dbCmd.Parameters.AddWithValue("@vuosiloppuen", vuosiloppuen);
-            dbCmd.Parameters.AddWithValue("@sarja", sarja);
-            dbCmd.Parameters.AddWithValue("@sarjajako", sarjajako);
+            addApuParams(dbCmd, vuosialkaen, vuosiloppuen, sarja, sarjajako);
 
             return toteutaKysely(dbCmd);
         }

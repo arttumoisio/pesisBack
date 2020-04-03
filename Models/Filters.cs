@@ -3,6 +3,22 @@ using Newtonsoft.Json;
 
 namespace pesisBackend
 {
+    class Modifier
+    {
+        public Modifier()
+        {
+            Group = "";
+            Filter = "";
+            Erittely = "";
+            Erittely2 = "";
+            Select = "";
+        }
+        public string Group {get; set;}
+        public string Filter {get; set;}
+        public string Erittely {get; set;}
+        public string Erittely2 {get; set;}
+        public string Select {get; set;}
+    }
     /// <summary>
     /// // TODO
     /// </summary>
@@ -17,42 +33,38 @@ namespace pesisBackend
             }
             return joukkueFilter;
         }
-        public Tuple<string, string, string> koti(string koti = "")
+        public Modifier koti(string kotiParam = "")
         {
-            string kotiGroup = "";
-            string kotiFilter = "";
-            string kotiErittely = "";
-            if (koti == "Koti"){
-                kotiFilter = $"AND j.joukkue_id=o.koti_id";
-            } else if (koti == "Vieras") {
-                kotiFilter = $"AND j.joukkue_id=o.vieras_id";
-            } else if (koti == "Eritelty") {
-                kotiErittely = @"
+            Modifier koti = new Modifier();
+            if (kotiParam == "Koti"){
+                koti.Filter = $"AND j.joukkue_id=o.koti_id";
+            } else if (kotiParam == "Vieras") {
+                koti.Filter = $"AND j.joukkue_id=o.vieras_id";
+            } else if (kotiParam == "Eritelty") {
+                koti.Erittely = @"
                 CASE ot.joukkue_id
                     WHEN o.koti_id THEN 'Koti'
 	                WHEN o.vieras_id THEN 'Vieras'
                 END `Koti/Vieras`,";
-                kotiGroup = $", `Koti/Vieras`";
+                koti.Group = $", `Koti/Vieras`";
             }
-            return new Tuple<string, string, string>(kotiGroup,kotiFilter,kotiErittely);
+            return koti;
         }
-        public Tuple<string, string, string> koti(string koti = "", bool j = true)
+        public Modifier koti(string kotiParam = "", bool j = true)
         {
-            string kotiGroup = "";
-            string kotiFilter = "";
-            string kotiErittely = "";
-            if (koti == "Koti"){
-                kotiFilter = $"AND koti='koti'";
-            } else if (koti == "Vieras") {
-                kotiFilter = $"AND koti='vieras'";
-            } else if (koti == "Eritelty") {
-                kotiErittely = @"
+            Modifier koti = new Modifier();
+            if (kotiParam == "Koti"){
+                koti.Filter = $"AND koti='koti'";
+            } else if (kotiParam == "Vieras") {
+                koti.Filter = $"AND koti='vieras'";
+            } else if (kotiParam == "Eritelty") {
+                koti.Erittely = @"
                 koti `Koti/Vieras`,";
-                kotiGroup = $", `koti`";
+                koti.Group = $", `koti`";
             }
-            return new Tuple<string, string, string>(kotiGroup,kotiFilter,kotiErittely);
+            return koti;
         }
-        public Tuple<string, string, string> tulos(string tulos = "")
+        public Modifier tulos(string tulos = "")
         {
             string pisteetGroup = "";
             string pisteetFilter = $@"
@@ -96,9 +108,13 @@ namespace pesisBackend
                     pisteetFilter = "";
                     break;
             }
-            return new Tuple<string, string, string>(pisteetGroup,pisteetFilter,pisteetErittely);
+            Modifier pisteetMod = new Modifier();
+            pisteetMod.Group = pisteetGroup;
+            pisteetMod.Filter = pisteetFilter;
+            pisteetMod.Erittely = pisteetErittely;
+            return pisteetMod;
         }
-        public Tuple<string, string, string> tulos(string tulos = "", bool j = true)
+        public Modifier tulos(string tulos = "", bool j = true)
         {
             string pisteetGroup = "";
             string pisteetFilter = $@"
@@ -133,23 +149,22 @@ namespace pesisBackend
                 default:
                     pisteetFilter = "";
                     break;
-            }
-            return new Tuple<string, string, string>(pisteetGroup,pisteetFilter,pisteetErittely);
+            }            
+            Modifier pisteetMod = new Modifier();
+            pisteetMod.Group = pisteetGroup;
+            pisteetMod.Filter = pisteetFilter;
+            pisteetMod.Erittely = pisteetErittely;
+            return pisteetMod;
         }
-        public Tuple<string, string, string> vastustaja(string vastustaja = "")
+        public Modifier vastustaja(string vastustaja = "")
         {
             string vastustajaGroup = "";
             string vastustajaFilter = "";
             string vastustajaErittely = "";
-            Console.WriteLine(vastustaja);
-
-            Console.WriteLine($"Tyhjä? {vastustajaErittely}");
 
             if (vastustaja == "Eritelty") {
-                Console.WriteLine($"Eritelty {vastustaja}");
                 vastustajaGroup = $", `Vastustaja`";
             } else if (!String.IsNullOrEmpty(vastustaja)){
-                Console.WriteLine($"Epätyhjä {vastustaja}");
                 vastustajaFilter = $@"
                     AND
                     (CASE ot.joukkue_id
@@ -158,7 +173,7 @@ namespace pesisBackend
                     END) = @vastustaja
                     ";
             }
-            if (!String.IsNullOrEmpty(vastustaja))
+            if (!String.IsNullOrEmpty(vastustaja)){
                 vastustajaErittely = @"
                     CASE ot.joukkue_id
                         
@@ -166,10 +181,14 @@ namespace pesisBackend
                         WHEN koti_id THEN vierasjoukkue
                         ELSE ot.joukkue_id ||' '|| koti_id ||' '|| vieras_id
                     END `Vastustaja`,";
-            Console.WriteLine($"Tyhjä? {vastustajaErittely}");
-            return new Tuple<string, string, string>(vastustajaGroup,vastustajaFilter,vastustajaErittely);
+            }
+            Modifier vastustajaMod = new Modifier();
+            vastustajaMod.Group = vastustajaGroup;
+            vastustajaMod.Filter = vastustajaFilter;
+            vastustajaMod.Erittely = vastustajaErittely;
+            return vastustajaMod;
         }
-        public Tuple<string, string, string> vastustaja(string vastustaja = "", bool j = true)
+        public Modifier vastustaja(string vastustaja = "", bool j = true)
         {
             string vastustajaGroup = "";
             string vastustajaFilter = "";
@@ -182,59 +201,56 @@ namespace pesisBackend
                     AND vastustaja = @vastustaja
                     ";
             }
-            if (!String.IsNullOrEmpty(vastustaja))
+            if (!String.IsNullOrEmpty(vastustaja)){
                 vastustajaErittely = @"
                     vastustaja `Vastustaja`,";
-            Console.WriteLine($"Tyhjä? {vastustajaErittely}");
-            return new Tuple<string, string, string>(vastustajaGroup,vastustajaFilter,vastustajaErittely);
+            }
+            Modifier vastustajaMod = new Modifier();
+            vastustajaMod.Group = vastustajaGroup;
+            vastustajaMod.Filter = vastustajaFilter;
+            vastustajaMod.Erittely = vastustajaErittely;
+            return vastustajaMod;
         }
-        public Tuple<string, string, string> kotiJoukkue(string kotijoukkue){
-            string kotiGroup = "";
-            string kotiFilter = "";
-            string kotiErittely = "";
+        public Modifier kotiJoukkue(string kotijoukkue){
+            Modifier koti = new Modifier();
             if (!String.IsNullOrEmpty(kotijoukkue))
             {
-                kotiErittely = "kotijoukkue Kotijoukkue,";
+                koti.Erittely = "kotijoukkue Kotijoukkue,";
                 if (kotijoukkue == "Eritelty")
                 {
-                    kotiGroup = ", kotijoukkue";
+                    koti.Group = ", kotijoukkue";
                 } else {
-                    kotiFilter = "AND kotijoukkue = @kotijoukkue";
+                    koti.Filter = "AND kotijoukkue = @kotijoukkue";
                 }
             }
-            return new Tuple<string, string, string>(kotiGroup,kotiFilter,kotiErittely);
+            return koti;
         }
-        public Tuple<string, string, string> vierasJoukkue(string vierasjoukkue){
-            string vierasGroup = "";
-            string vierasFilter = "";
-            string vierasErittely = "";
+        public Modifier vierasJoukkue(string vierasjoukkue){
+            Modifier vieras = new Modifier();
             if (!String.IsNullOrEmpty(vierasjoukkue))
             {
-                vierasErittely = "vierasjoukkue Vierasjoukkue,";
+                vieras.Erittely = "vierasjoukkue Vierasjoukkue,";
                 if (vierasjoukkue == "Eritelty")
                 {
-                    vierasGroup = ", vierasjoukkue";
+                    vieras.Group = ", vierasjoukkue";
                 } else {
-                    vierasFilter = "AND vierasjoukkue = @vierasjoukkue";
+                    vieras.Filter = "AND vierasjoukkue = @vierasjoukkue";
                 }
             }
 
-            return new Tuple<string, string, string>(vierasGroup,vierasFilter,vierasErittely);
+            return vieras;
         }
-        public Tuple<string, string, string, string> lukkari(string lukkari){
-            string Group = "";
-            string Filter = "";
-            string Erittely = "";
-            string Select = @"";
+        public Modifier lukkari(string lukkari){
+            Modifier lukkariMod = new Modifier();
             if (!String.IsNullOrEmpty(lukkari))
             {
-                Select = @"
+                lukkariMod.Select = @"
 INNER JOIN ottelu_tilasto ot ON ot.ottelu_id = o.ottelu_id AND upp = 'L'
 INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
                 ";
-                Group = ", Lukkari";
-                Filter = @"";
-                Erittely = @"
+                lukkariMod.Group = ", Lukkari";
+                lukkariMod.Filter = @"";
+                lukkariMod.Erittely = @"
                 p.nimi Lukkari,
                 SUM(kp > vp AND ot.joukkue_id = o.koti_id) + SUM(kp < vp AND ot.joukkue_id = o.vieras_id) `Lukkarin voitot`,
                 SUM(kp < vp AND ot.joukkue_id = o.koti_id) + SUM(kp > vp AND ot.joukkue_id = o.vieras_id) `Lukkarin tappiot`,
@@ -255,11 +271,11 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
                 ) / COUNT( DISTINCT o.ottelu_id ),2) `Lukkarin VT juoksut / ott`,
                 ";
                 if (lukkari != "Eritelty"){
-                    Filter += " AND Lukkari = @lukkari ";
+                    lukkariMod.Filter += " AND Lukkari = @lukkari ";
                 }
             }
 
-            return new Tuple<string, string, string, string>(Group,Filter,Erittely, Select);
+            return lukkariMod;
         }
         public string stpt(string STPT){
             string Filter = "";
@@ -269,49 +285,45 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             }
             return Filter;
         }
-        public Tuple<string, string, string> vuosittain(bool vuosittain){
-            string group = "";
-            string erittely = "";
-            string erittely2 = ", COUNT(DISTINCT kausi) Kaudet";
+        public Modifier vuosittain(bool vuosittain){
+            Modifier vuosittainM = new Modifier();
+            vuosittainM.Group = "";
+            vuosittainM.Erittely = "";
+            vuosittainM.Erittely2 = ", COUNT(DISTINCT kausi) Kaudet";
             if (vuosittain) {
-                group = ", kausi";
-                erittely = "kausi Kausi,";
-                erittely2 = "";
+                vuosittainM.Group = ", kausi";
+                vuosittainM.Erittely = "kausi Kausi,";
+                vuosittainM.Erittely2 = "";
             }
-            return new Tuple<string, string, string>(group,erittely,erittely2);
+            return vuosittainM;
         }
-        public Tuple<string, string, string> sarjajako(string sarjajako){
-            string group = ", sarjajako";
-            string erittely = "";
-            string filter = "AND sarjajako = @sarjajako";
-            if (String.IsNullOrEmpty(sarjajako)) {
-                group = "";
-                erittely = "";
-                filter = "";
-            }
+        public Modifier sarjajako(string sarjajako){
+            Modifier sarjaj = new Modifier();
             if (sarjajako == "Eritelty") {
-                erittely = "sarjajako Sarjavaihe,";
-                filter = "";
+                sarjaj.Erittely = "sarjajako Sarjavaihe,";
+                sarjaj.Filter = "";
+            } else if (!String.IsNullOrEmpty(sarjajako)) {
+                sarjaj.Group = ", sarjajako";
+                sarjaj.Filter = "AND sarjajako = @sarjajako";
             }
-            return new Tuple<string, string, string>(group,filter,erittely);
+            return sarjaj;
         }
-        public Tuple<string,string,string> sarja(string sarja){
-            string group = "";
-            string filter = "AND sarja = @sarja";
-            string erittely = "";
+        public Modifier sarja(string sarja){
+            Modifier sarjaMod = new Modifier();
+            sarjaMod.Filter = "AND sarja = @sarja";
 
             if (String.IsNullOrEmpty(sarja)) {
-                group = "";
-                filter = "";
-                erittely = "";
+                sarjaMod.Group = "";
+                sarjaMod.Filter = "";
+                sarjaMod.Erittely = "";
             }
             if(sarja == "Eritelty"){
-                group = ", sarja";
-                filter = "";
-                erittely = "sarja Sarja,";
+                sarjaMod.Group = ", sarja";
+                sarjaMod.Filter = "";
+                sarjaMod.Erittely = "sarja Sarja,";
             }
 
-            return new Tuple<string, string, string>(group,filter,erittely);
+            return sarjaMod;
         }
     }
 }
