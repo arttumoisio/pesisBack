@@ -25,28 +25,35 @@ namespace pesisBackend
     class Filters
     {
 
-        public string joukkue(string joukkue = ""){
-            string joukkueFilter = "";
+        public Modifier joukkue(string joukkue = ""){
+            Modifier joukkueMod = new Modifier();
+            joukkueMod.Filter = "";
             if (!String.IsNullOrEmpty(joukkue)){
-                joukkueFilter = "AND j.joukkue = @joukkue";
-
+                joukkueMod.Filter = "AND j.joukkue = @joukkue";
             }
-            return joukkueFilter;
+            if (joukkue == "Eritelty"){
+                joukkueMod.Group = " , j.joukkue";
+                joukkueMod.Filter = "";
+                joukkueMod.Erittely = " joukkue Joukkue, ";
+            }
+            return joukkueMod;
         }
         public Modifier koti(string kotiParam = "")
         {
             Modifier koti = new Modifier();
+            koti.Filter = "j.joukkue_id = ot.joukkue_id";
             if (kotiParam == "Koti"){
-                koti.Filter = $"AND j.joukkue_id=o.koti_id";
+                koti.Filter = $"j.joukkue_id=o.koti_id";
             } else if (kotiParam == "Vieras") {
-                koti.Filter = $"AND j.joukkue_id=o.vieras_id";
+                koti.Filter = $"j.joukkue_id=o.vieras_id";
             } else if (kotiParam == "Eritelty") {
                 koti.Erittely = @"
                 CASE ot.joukkue_id
                     WHEN o.koti_id THEN 'Koti'
 	                WHEN o.vieras_id THEN 'Vieras'
                 END `Koti/Vieras`,";
-                koti.Group = $", `Koti/Vieras`";
+                koti.Group = $", ot.joukkue_id = o.koti_id";
+
             }
             return koti;
         }
@@ -66,95 +73,95 @@ namespace pesisBackend
         }
         public Modifier tulos(string tulos = "")
         {
-            string pisteetGroup = "";
-            string pisteetFilter = $@"
+            string tulosGroup = "";
+            string tulosFilter = $@"
                     AND (
                     CASE ot.joukkue_id
                         WHEN o.vieras_id THEN vp+0
                         WHEN o.koti_id THEN kp+0
                     END
                     ) ";
-            string pisteetErittely = "";
+            string tulosErittely = "";
             switch (tulos)
             {
                 case "Voitto":
-                    pisteetFilter += ">= 2" ;
+                    tulosFilter += ">= 2" ;
                     break;
                 case "Tappio":
-                    pisteetFilter += "<= 1" ;
+                    tulosFilter += "<= 1" ;
                     break;
                 case "3p Voitto":
-                    pisteetFilter += "= 3" ;
+                    tulosFilter += "= 3" ;
                     break;
                 case "2p Voitto":
-                    pisteetFilter += "= 2" ;
+                    tulosFilter += "= 2" ;
                     break;
                 case "1p Tappio":
-                    pisteetFilter += "= 1" ;
+                    tulosFilter += "= 1" ;
                     break;
                 case "0p Tappio":
-                    pisteetFilter += "= 0" ;
+                    tulosFilter += "= 0" ;
                     break;
                 case "Eritelty":
-                    pisteetFilter ="";
-                    pisteetErittely = @"
+                    tulosFilter ="";
+                    tulosErittely = @"
                     CASE ot.joukkue_id
                         WHEN o.vieras_id THEN vp || 'P'
                         WHEN o.koti_id THEN kp || 'P'
                     END `Voitto/Tappio`,";
-                    pisteetGroup =", `Voitto/Tappio`";
+                    tulosGroup =", (ot.joukkue_id == o.koti_id)";
                     break;
                 default:
-                    pisteetFilter = "";
+                    tulosFilter = "";
                     break;
             }
-            Modifier pisteetMod = new Modifier();
-            pisteetMod.Group = pisteetGroup;
-            pisteetMod.Filter = pisteetFilter;
-            pisteetMod.Erittely = pisteetErittely;
-            return pisteetMod;
+            Modifier tulosMod = new Modifier();
+            tulosMod.Group = tulosGroup;
+            tulosMod.Filter = tulosFilter;
+            tulosMod.Erittely = tulosErittely;
+            return tulosMod;
         }
         public Modifier tulos(string tulos = "", bool j = true)
         {
-            string pisteetGroup = "";
-            string pisteetFilter = $@"
+            string tulosGroup = "";
+            string tulosFilter = $@"
                     AND p ";
-            string pisteetErittely = "";
+            string tulosErittely = "";
             switch (tulos)
             {
                 case "Voitto":
-                    pisteetFilter += ">= 2" ;
+                    tulosFilter += ">= 2" ;
                     break;
                 case "Tappio":
-                    pisteetFilter += "<= 1" ;
+                    tulosFilter += "<= 1" ;
                     break;
                 case "3p Voitto":
-                    pisteetFilter += "= 3" ;
+                    tulosFilter += "= 3" ;
                     break;
                 case "2p Voitto":
-                    pisteetFilter += "= 2" ;
+                    tulosFilter += "= 2" ;
                     break;
                 case "1p Tappio":
-                    pisteetFilter += "= 1" ;
+                    tulosFilter += "= 1" ;
                     break;
                 case "0p Tappio":
-                    pisteetFilter += "= 0" ;
+                    tulosFilter += "= 0" ;
                     break;
                 case "Eritelty":
-                    pisteetFilter ="";
-                    pisteetErittely = @"
+                    tulosFilter ="";
+                    tulosErittely = @"
                     p || 'P' `Voitto/Tappio`,";
-                    pisteetGroup =", `Voitto/Tappio`";
+                    tulosGroup =", `Voitto/Tappio`";
                     break;
                 default:
-                    pisteetFilter = "";
+                    tulosFilter = "";
                     break;
             }            
-            Modifier pisteetMod = new Modifier();
-            pisteetMod.Group = pisteetGroup;
-            pisteetMod.Filter = pisteetFilter;
-            pisteetMod.Erittely = pisteetErittely;
-            return pisteetMod;
+            Modifier tulosMod = new Modifier();
+            tulosMod.Group = tulosGroup;
+            tulosMod.Filter = tulosFilter;
+            tulosMod.Erittely = tulosErittely;
+            return tulosMod;
         }
         public Modifier vastustaja(string vastustaja = "")
         {
@@ -170,7 +177,7 @@ namespace pesisBackend
                     (CASE ot.joukkue_id
                         WHEN o.vieras_id THEN kotijoukkue
                         WHEN o.koti_id THEN vierasjoukkue
-                    END) = @vastustaja
+                        END) = @vastustaja
                     ";
             }
             if (!String.IsNullOrEmpty(vastustaja)){
@@ -302,8 +309,8 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             if (sarjajako == "Eritelty") {
                 sarjaj.Erittely = "sarjajako Sarjavaihe,";
                 sarjaj.Filter = "";
-            } else if (!String.IsNullOrEmpty(sarjajako)) {
                 sarjaj.Group = ", sarjajako";
+            } else if (!String.IsNullOrEmpty(sarjajako)) {
                 sarjaj.Filter = "AND sarjajako = @sarjajako";
             }
             return sarjaj;
