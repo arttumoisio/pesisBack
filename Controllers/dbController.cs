@@ -30,13 +30,13 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetPelaajat(
-          int kaudetAlku=2000,
+          int kaudetAlku=1994,
           int kaudetLoppu=2020, 
           Boolean vuosittain=false,
           string paikka="",
           string tulos="",
-          string sarja="",
-          string sarjavaihe="",
+          string sarja="Miesten superpesis",
+          string sarjavaihe="Runkosarja",
           string vastustaja="",
           string joukkue= ""
 
@@ -63,8 +63,8 @@ namespace pesisBackend.Controllers
           string joukkue = "",
           string paikka="",
           string tulos="",
-          string sarja="",
-          string sarjavaihe="",
+          string sarja="Miesten superpesis",
+          string sarjavaihe="Runkosarja",
           string vastustaja=""
         )
         {
