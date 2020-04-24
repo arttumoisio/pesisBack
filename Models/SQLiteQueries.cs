@@ -78,7 +78,7 @@ namespace pesisBackend
             Modifier kotiMod = filters.koti(koti);
             Modifier tulosMod = filters.tulos(tulos);
             Modifier vastustajaMod = filters.vastustaja(vastustaja);
-            string joukkueFilter = filters.joukkue(joukkue);
+            Modifier joukkueMod = filters.joukkue(joukkue);
 
             string query = $@"
             BEGIN;
@@ -148,7 +148,7 @@ namespace pesisBackend
             SUM(upp = '3P') '3-polttaja',
             SUM(upp = '2K') '2-koppari',
             SUM(upp = '3K') '3-koppari',
-            SUM(upp = '') 'jokeri',
+            SUM(pelaaja_nro = '10' OR pelaaja_nro = '11' OR pelaaja_nro = '12') 'jokeri',
             SUM(pelaaja_nro = '1') 'Nro 1',
             SUM(pelaaja_nro = '2') 'Nro 2',
             SUM(pelaaja_nro = '3') 'Nro 3',
@@ -160,28 +160,31 @@ namespace pesisBackend
             SUM(pelaaja_nro = '9') 'Nro 9',
             SUM(pelaaja_nro = '10') 'Nro 10',
             SUM(pelaaja_nro = '11') 'Nro 11',
-            SUM(pelaaja_nro = '12') 'Nro 12'
+            SUM(pelaaja_nro = '12') 'Nro 12',
+            COUNT(DISTINCT joukkue) 'Joukkueet yht.',
+            REPLACE( GROUP_CONCAT( DISTINCT joukkue), ',', ', ') Joukkueet
+
 
             FROM ottelu_tilasto ot
-            INNER JOIN ottelu o  
-                ON ot.ottelu_id = o.ottelu_id 
-                AND sarja = @sarja
+            INNER JOIN ottelu o
+                ON sarja = @sarja
+                AND ot.ottelu_id = o.ottelu_id
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
+                {sarjajakoMod.Filter}
+                {vastustajaMod.Filter}
+                {tulosMod.Filter}
+                {joukkueMod.Filter}
             INNER JOIN pelaaja p ON ot.pelaaja_id = p.pelaaja_id 
-            INNER JOIN joukkue j ON ot.joukkue_id = j.joukkue_id
-            WHERE 1
-            {kotiMod.Filter}
-            {sarjajakoMod.Filter}
-            {tulosMod.Filter}
-            {vastustajaMod.Filter}
-            {joukkueFilter}
+            INNER JOIN joukkue j 
+                ON {kotiMod.Filter}
             
             GROUP BY ot.pelaaja_id, kausi
             {kotiMod.Group}
             {tulosMod.Group}
             {vastustajaMod.Group}
             {sarjajakoMod.Group}
+            {joukkueMod.Group}
             ORDER BY `Tehopist. yht` DESC;
             COMMIT;
             ";
@@ -207,13 +210,14 @@ namespace pesisBackend
             Modifier kotiMod = filters.koti(koti);
             Modifier tulosMod = filters.tulos(tulos);
             Modifier vastustajaMod = filters.vastustaja(vastustaja);
-            string joukkueFilter = filters.joukkue(joukkue);
+            Modifier joukkueMod = filters.joukkue(joukkue);
                         
             SQLiteCommand dbCmd = _con.CreateCommand();
             string query = $@"
             BEGIN;
             SELECT  
             p.nimi Nimi,
+            {joukkueMod.Erittely}
             {kotiMod.Erittely}
             {tulosMod.Erittely}
             {vastustajaMod.Erittely}
@@ -286,7 +290,7 @@ namespace pesisBackend
             SUM(upp = '3P') '3-polttaja',
             SUM(upp = '2K') '2-koppari',
             SUM(upp = '3K') '3-koppari',
-            SUM(upp = '') 'jokeri',
+            SUM(pelaaja_nro = '10' OR pelaaja_nro = '11' OR pelaaja_nro = '12') 'jokeri',
             SUM(pelaaja_nro = '1') 'Nro 1',
             SUM(pelaaja_nro = '2') 'Nro 2',
             SUM(pelaaja_nro = '3') 'Nro 3',
@@ -300,8 +304,8 @@ namespace pesisBackend
             SUM(pelaaja_nro = '11') 'Nro 11',
             SUM(pelaaja_nro = '12') 'Nro 12',
             COUNT(DISTINCT kausi) Kaudet,
-            COUNT(DISTINCT joukkue) Joukkueet,
-            GROUP_CONCAT(DISTINCT joukkue) Joukkueet
+            COUNT(DISTINCT joukkue) 'Joukkueet yht.',
+            REPLACE( GROUP_CONCAT( DISTINCT joukkue), ',', ', ') Joukkueet
 
             FROM ottelu_tilasto ot 
             INNER JOIN ottelu o  ON 
@@ -309,19 +313,19 @@ namespace pesisBackend
                 AND sarja = @sarja
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
+                {sarjajakoMod.Filter}
+                {tulosMod.Filter}
+                {vastustajaMod.Filter}
+                {joukkueMod.Filter}
             INNER JOIN pelaaja p ON ot.pelaaja_id = p.pelaaja_id 
-            INNER JOIN joukkue j ON ot.joukkue_id = j.joukkue_id
-            WHERE 1
-            {sarjajakoMod.Filter}
-            {kotiMod.Filter}
-            {tulosMod.Filter}
-            {vastustajaMod.Filter}
-            {joukkueFilter}
+            INNER JOIN joukkue j 
+                ON {kotiMod.Filter}
             GROUP BY ot.pelaaja_id 
             {kotiMod.Group} 
             {tulosMod.Group}
             {vastustajaMod.Group}
             {sarjajakoMod.Group}
+            {joukkueMod.Group}
             ORDER BY `Tehopist. yht` DESC;
             COMMIT;
             ";
@@ -340,7 +344,7 @@ namespace pesisBackend
             string sarja="",
             string sarjajako="" )
         {
-            string joukkueFilter = filters.joukkue(joukkue);              
+            string joukkueFilter = filters.joukkue(joukkue).Filter;              
             Modifier sarjajakoMod = filters.sarjajako(sarjajako);
             Modifier kotiMod = filters.koti(koti, true);
             Modifier tulosMod = filters.tulos(tulos, true);
@@ -386,13 +390,12 @@ namespace pesisBackend
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND sarja = @sarja
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
-            WHERE 1
-            {sarjajakoMod.Filter}
-            {joukkueFilter}
-            {kotiMod.Filter}
-            {tulosMod.Filter}
-            {vastustajaMod.Filter}
-            GROUP BY po.joukkue ,kausi
+                {sarjajakoMod.Filter}
+                {joukkueFilter}
+                {kotiMod.Filter}
+                {tulosMod.Filter}
+                {vastustajaMod.Filter}
+            GROUP BY po.joukkue, kausi
             {kotiMod.Group} 
             {tulosMod.Group}
             {vastustajaMod.Group}
@@ -417,7 +420,7 @@ namespace pesisBackend
             string sarja="",
             string sarjajako="" )
         {
-            string joukkueFilter = filters.joukkue(joukkue);
+            string joukkueFilter = filters.joukkue(joukkue).Filter;
             Modifier sarjajakoMod = filters.sarjajako(sarjajako);
             Modifier kotiMod = filters.koti(koti, true);
             Modifier tulosMod = filters.tulos(tulos, true);
@@ -458,18 +461,18 @@ namespace pesisBackend
             ROUND(AVG(CAST(CASE WHEN kotib THEN katsojamaara END AS INTEGER)),0) `Katsoja-keskiarvo`,
             ROUND(AVG(CAST(CASE WHEN kotib<>1 THEN katsojamaara END AS INTEGER)),0) `Katsoja-keskiarvo vieraissa`,
             COUNT(DISTINCT kausi) Kaudet
+
             FROM joukkue j 
             INNER JOIN puoli_ottelu po ON 
                 po.joukkue_id = j.joukkue_id
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND sarja = @sarja
                 AND kausi BETWEEN @vuosialkaen AND @vuosiloppuen
-            WHERE 1
-            {sarjajakoMod.Filter}
-            {joukkueFilter}
-            {kotiMod.Filter}
-            {tulosMod.Filter}
-            {vastustajaMod.Filter}
+                {sarjajakoMod.Filter}
+                {joukkueFilter}
+                {kotiMod.Filter}
+                {tulosMod.Filter}
+                {vastustajaMod.Filter}
             GROUP BY j.joukkue
             {kotiMod.Group} 
             {tulosMod.Group}
@@ -544,6 +547,10 @@ namespace pesisBackend
                 AND o.kausi BETWEEN @vuosialkaen AND @vuosiloppuen
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND sarja = @sarja
+                {sarjajakoMod.Filter}
+                {kotiMod.Filter}
+                {vierasMod.Filter}
+                {STPTFilter}
             INNER JOIN (
                 SELECT
                 oo.ottelu_id ottelu_id,
@@ -561,13 +568,9 @@ namespace pesisBackend
                     AND sarja = @sarja
                 GROUP BY oo.ottelu_id
             ) vt ON vt.ottelu_id = o.ottelu_id
-            {lukkariMod.Select}
-            WHERE 1
-            {sarjajakoMod.Filter}
-            {kotiMod.Filter}
-            {vierasMod.Filter}
             {lukkariMod.Filter}
-            {STPTFilter}
+            {lukkariMod.Select}
+            
             GROUP BY tuomari
             {vuosittainMod.Group}
             {kotiMod.Group}
@@ -652,7 +655,7 @@ namespace pesisBackend
             SELECT DISTINCT kausi
             FROM ottelu o
             WHERE tila != 'ottelu ei ole vielä alkanut'
-            ORDER BY kausi;
+            ORDER BY kausi DESC;
             COMMIT;
             ";
             dbCmd.CommandText = query;
