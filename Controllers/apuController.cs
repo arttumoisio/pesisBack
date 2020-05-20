@@ -4,14 +4,16 @@ using System;
 namespace pesisBackend.Controllers
 {
     [ApiController]
-    [Route("apu")] // [Route("testi")] -> route on /testi, nyt se on /
+    [Route("apu")]
     public class apuController : ControllerBase
     {
-        private readonly SQLiteQueries _query2;
+        private readonly ApuQueries query;
+        private readonly ReturnStatusHandler returnStatusHandler;
 
         public apuController()
         {
-            _query2 = new SQLiteQueries();
+            query = new ApuQueries();
+            returnStatusHandler = new ReturnStatusHandler();
 
         }
 
@@ -25,13 +27,11 @@ namespace pesisBackend.Controllers
             string sarjavaihe = ""
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            Console.WriteLine(Request.Body);
-            Console.WriteLine(Request.Query);
-            Console.WriteLine(Request.QueryString);
-            string data = _query2.apuJoukkueet(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            IBasicParams basicParams = new BasicParams(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
+
+            string data = query.apuJoukkueet(basicParams);
+
+            return returnStatusHandler.handleResultString(data);
         }
         [HttpGet("vuodet")]
         [ProducesResponseType(200)]
@@ -39,10 +39,9 @@ namespace pesisBackend.Controllers
         public IActionResult GetVuodet(
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuVuodet();
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            string data = query.apuVuodet();
+           
+            return returnStatusHandler.handleResultString(data);
         }
         [HttpGet("sarjavaihe")]
         [ProducesResponseType(200)]
@@ -52,10 +51,12 @@ namespace pesisBackend.Controllers
           int kaudetLoppu=2019
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apusarjajaot(kaudetAlku,kaudetLoppu);
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+
+            IBasicParams basicParams = new BasicParams(kaudetAlku,kaudetLoppu);
+
+            string data = query.apusarjajaot(basicParams);
+            
+            return returnStatusHandler.handleResultString(data);
         }
         [HttpGet("sarja")]
         [ProducesResponseType(200)]
@@ -65,33 +66,13 @@ namespace pesisBackend.Controllers
           int kaudetLoppu=2019
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuSarjat(kaudetAlku,kaudetLoppu);
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            IBasicParams basicParams = new BasicParams(kaudetAlku,kaudetLoppu);
+
+            string data = query.apuSarjat(basicParams);
+            
+            return returnStatusHandler.handleResultString(data);
         }
-        [HttpGet("lyontinumero")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public IActionResult GetLyontiNumerot(
-        )
-        {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuLyontiNumerot();
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
-        }
-        [HttpGet("ulkopelipaikka")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        public IActionResult GetUPPaikat(
-        )
-        {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = _query2.apuUlkoPeliPaikat();
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
-        }
+        
         [HttpGet("lukkarit")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
@@ -102,13 +83,14 @@ namespace pesisBackend.Controllers
             string sarjavaihe = ""
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
+            IBasicParams basicParams = new BasicParams(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
+
             Console.WriteLine(Request.Body);
             Console.WriteLine(Request.Query);
             Console.WriteLine(Request.QueryString);
-            string data = _query2.apuLukkarit(kaudetAlku,kaudetLoppu,sarja,sarjavaihe);
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            string data = query.apuLukkarit(basicParams);
+            
+            return returnStatusHandler.handleResultString(data);
         }
     }
 }

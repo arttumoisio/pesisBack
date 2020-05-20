@@ -22,16 +22,24 @@ namespace pesisBackend
 
         public IConfiguration Configuration { get; }
 
+        readonly string AllowAllOrigins = "allowAll_";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
             services.AddCors(options =>
             {
-                options.AddPolicy("allowAll_",
+                options.AddPolicy(name: AllowAllOrigins,
                 builder =>
                 {
-                    builder.AllowAnyOrigin();
+                    // builder.AllowAnyOrigin();
+                    builder.WithOrigins(
+                        "http://pesisstats.ninja",
+                        "http://pesisstats.herokuapp.com",
+                        "https://pesisstats.herokuapp.com",
+                        "http://localhost:4200"
+                    );
                 });
             });
         }
@@ -50,11 +58,13 @@ namespace pesisBackend
 
             app.UseRouting();
 
+            app.UseCors();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireCors(AllowAllOrigins);
             });
         }
     }

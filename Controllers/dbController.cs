@@ -8,12 +8,15 @@ namespace pesisBackend.Controllers
     [Route("")] // [Route("testi")] -> route on /testi, nyt se on /
     public class dbController : ControllerBase
     {
-        private readonly SQLiteQueries _query2;
+        private readonly SQLiteQueries query;
+        private IQueryTimer queryTimer;
+        private readonly ReturnStatusHandler returnStatusHandler;
 
         public dbController()
         {
-            _query2 = new SQLiteQueries();
-
+            query = new SQLiteQueries();
+            queryTimer = new QueryTimer();
+            returnStatusHandler = new ReturnStatusHandler();
         }
 
         [HttpGet]
@@ -22,7 +25,6 @@ namespace pesisBackend.Controllers
         public IActionResult GetTest(
         )
         {
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
             return Ok("Serveri toimii");
         }
         
@@ -30,27 +32,36 @@ namespace pesisBackend.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         public IActionResult GetPelaajat(
-          int kaudetAlku=1994,
+          int kaudetAlku=2000,
           int kaudetLoppu=2020, 
+          string sarja="Miesten superpesis",
+          string sarjavaihe="Runkosarja",
           Boolean vuosittain=false,
           string paikka="",
           string tulos="",
-          string sarja="Miesten superpesis",
-          string sarjavaihe="Runkosarja",
           string vastustaja="",
-          string joukkue= ""
-
+          string joukkue = ""
         )
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = "";
-            if (vuosittain) { data = _query2.haePelaajatVuosittain(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja,joukkue,sarja,sarjavaihe);} 
-            else { data = _query2.haePelaajat(kaudetAlku,kaudetLoppu,paikka,tulos,vastustaja,joukkue,sarja,sarjavaihe); }
-            if (data == ""){return StatusCode(404); }
-            Console.WriteLine("PELAAJIIN AIKAA MENI: {0}",sw.Elapsed);
-            return Ok(data);
+            ITeamParams teamParams = new TeamParams(
+                kaudetAlku,
+                kaudetLoppu, 
+                sarja,
+                sarjavaihe,
+                vuosittain,
+                paikka,
+                tulos,
+                vastustaja,
+                joukkue 
+            );
+            
+            queryTimer.Start();
+            
+            string data = query.haePelaajat(teamParams);
+            
+            queryTimer.Stop("PELAAJIIN");
+            
+            return returnStatusHandler.handleResultString(data);
         }
 
         [HttpGet("joukkueet")]
@@ -59,24 +70,36 @@ namespace pesisBackend.Controllers
         public IActionResult GetJoukkueet(
           int kaudetAlku=2000,
           int kaudetLoppu=2020, 
-          Boolean vuosittain=false,
-          string joukkue = "",
-          string paikka="",
-          string tulos="",
           string sarja="Miesten superpesis",
           string sarjavaihe="Runkosarja",
-          string vastustaja=""
+          Boolean vuosittain=false,
+          string paikka="",
+          string tulos="",
+          string vastustaja="",
+          string joukkue = ""
         )
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = "";
-            if (vuosittain) { data = _query2.haeJoukkueetVuosittain(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja,sarja,sarjavaihe);} 
-            else { data = _query2.haeJoukkueet(kaudetAlku,kaudetLoppu,joukkue,paikka,tulos,vastustaja,sarja,sarjavaihe); }
-            if (data == ""){return StatusCode(404); }
-            Console.WriteLine("JOUKKUEISIIN AIKAA MENI: {0}",sw.Elapsed);
-            return Ok(data);
+            ITeamParams teamParams = new TeamParams(
+                kaudetAlku,
+                kaudetLoppu, 
+                sarja,
+                sarjavaihe,
+                vuosittain,
+                paikka,
+                tulos,
+                vastustaja,
+                joukkue 
+            );
+
+
+            queryTimer.Start();
+
+            string data = query.haeJoukkueet(teamParams);
+
+            
+            queryTimer.Stop("JOUKKUEISIIN");
+            
+            return returnStatusHandler.handleResultString(data);
         }
 
         [HttpGet("tuomarit")]
@@ -85,29 +108,34 @@ namespace pesisBackend.Controllers
         public IActionResult GetTuomarit(
           int kaudetAlku=2000,
           int kaudetLoppu=2020, 
+          string sarja="",
+          string sarjavaihe="",
           Boolean vuosittain=false,
           string kotijoukkue = "",
           string vierasjoukkue = "",
-          string sarja="",
-          string sarjavaihe="",
           string lukkari = "",
           string STPT = ""
         )
         {   
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Console.WriteLine(Request.Query);
-            Console.WriteLine("Request.QueryString");
-            Console.WriteLine(Request.QueryString);
-            Console.WriteLine("Request.QueryString");
-            Response.Headers.Add("Access-Control-Allow-Origin", new[] { (string)Request.Headers["Origin"] });
-            string data = "";
-            data = _query2.haeTuomarit(kaudetAlku,kaudetLoppu,vuosittain,kotijoukkue,vierasjoukkue, lukkari, STPT,sarja,sarjavaihe);
-            sw.Stop();
-            Console.WriteLine("TUOMAREIHIN AIKAA MENI: {0}",sw.Elapsed);
+            ITuomariParams tuomariParams = new TuomariParams(
+                kaudetAlku,
+                kaudetLoppu, 
+                sarja,
+                sarjavaihe,
+                vuosittain=false,
+                kotijoukkue,
+                vierasjoukkue,
+                lukkari,
+                STPT
+            );
             
-            if (data == ""){return StatusCode(404); }
-            return Ok(data);
+            queryTimer.Start();
+            
+            string data = query.haeTuomarit(tuomariParams);
+
+            queryTimer.Stop("TUOMAREIHIN");
+            
+            return returnStatusHandler.handleResultString(data);
         }
     }
 }
