@@ -11,9 +11,10 @@ namespace pesisBackend
         private IDBHandler dBHandler;
 
         private Filters filters; 
-        public SQLiteQueries()
+        public SQLiteQueries(IDBHandler dBHandler)
         {
-            dBHandler = new SQLiteDBHandler();
+
+            this.dBHandler = dBHandler;
             filters = new Filters();
         }
         public string haePelaajat(
@@ -25,12 +26,13 @@ namespace pesisBackend
             Modifier tulosMod = filters.tulos(teamParams.tulos, false);
             Modifier vastustajaMod = filters.vastustaja(teamParams.vastustaja, false);
             Modifier joukkueMod = filters.joukkue(teamParams.joukkue);
+            Modifier vuosittainMod = filters.vuosittain(teamParams.vuosittain);
                         
             string query = $@"
             BEGIN;
             SELECT  
             p.nimi Nimi,
-            { (teamParams.vuosittain ? "kausi Kausi, " : "") }
+            {vuosittainMod.Erittely}
             {joukkueMod.Erittely}
             {kotiMod.Erittely}
             {tulosMod.Erittely}
@@ -62,7 +64,10 @@ namespace pesisBackend
             ROUND(1.0*SUM(kl1+kl2+kl3+kl4)/COUNT(o.ottelu_id),2) 'KL per ottelu',
             ROUND(1.0*SUM(kl1)/COUNT(o.ottelu_id),2) 'KL->1 per ottelu',
             ROUND(1.0*SUM(kl2)/COUNT(o.ottelu_id),2) 'KL->2 per ottelu',
-            ROUND(1.0*SUM(kl3)/COUNT(o.ottelu_id),2) 'KL->3 per ottelu', 
+            ROUND(1.0*SUM(kl3)/COUNT(o.ottelu_id),2) 'KL->3 per ottelu',
+            
+            { (teamParams.vuosittain ? "" : @"
+            
             ROUND(1.0*SUM(ku)/COUNT(DISTINCT kausi),2) 'Kunnarit per kausi', 
             ROUND(1.0*SUM(ly)/COUNT(DISTINCT kausi),2) 'Lyödyt per kausi',
             ROUND(1.0*SUM(ku+ly)/COUNT(DISTINCT kausi),2) 'K + L per kausi', 
@@ -73,6 +78,9 @@ namespace pesisBackend
             ROUND(1.0*SUM(kl1)/COUNT(DISTINCT kausi),2) 'KL->1 per kausi',
             ROUND(1.0*SUM(kl2)/COUNT(DISTINCT kausi),2) 'KL->2 per kausi',
             ROUND(1.0*SUM(kl3)/COUNT(DISTINCT kausi),2) 'KL->3 per kausi',
+            
+            ") }
+
             MAX(ku + ly) `Maks lyodyt yht ottelussa`,
             MAX(ku+0) `Maks kunnarit ottelussa`,
             MAX(ly+0) `Maks lyödyt ottelussa`,
@@ -117,7 +125,7 @@ namespace pesisBackend
             SUM(pelaaja_nro = '10') 'Nro 10',
             SUM(pelaaja_nro = '11') 'Nro 11',
             SUM(pelaaja_nro = '12') 'Nro 12',
-            { (teamParams.vuosittain ? "" : "COUNT(DISTINCT kausi) Kaudet, ") }
+            {vuosittainMod.Erittely2}
             COUNT(DISTINCT joukkue) 'Joukkueet yht.',
             REPLACE( GROUP_CONCAT( DISTINCT joukkue), ',', ', ') Joukkueet
 
@@ -135,7 +143,7 @@ namespace pesisBackend
             INNER JOIN joukkue j 
                 ON {kotiMod.Filter}
             GROUP BY ot.pelaaja_id
-            { (teamParams.vuosittain ? ", kausi " : "") }
+            {vuosittainMod.Group}
             {kotiMod.Group} 
             {tulosMod.Group}
             {vastustajaMod.Group}
@@ -157,12 +165,13 @@ namespace pesisBackend
             Modifier kotiMod = filters.koti(teamParams.koti, true);
             Modifier tulosMod = filters.tulos(teamParams.tulos, true);
             Modifier vastustajaMod = filters.vastustaja(teamParams.vastustaja, true);
+            Modifier vuosittainMod = filters.vuosittain(teamParams.vuosittain);
 
             string query = $@"
             BEGIN;
             SELECT 
             j.joukkue Joukkue,
-            { (teamParams.vuosittain ? "kausi Kausi, " : "") }
+            {vuosittainMod.Erittely}
             {sarjajakoMod.Erittely}
             {kotiMod.Erittely}
             {tulosMod.Erittely}
@@ -190,9 +199,9 @@ namespace pesisBackend
             SUM(aloittaja=0) 'Aloittava ulkovuoro',
             SUM(svaloittaja) 'Aloittava sisävuoro superissa',
             SUM(INSTR(tulos,'s')>0)+SUM(INSTR(tulos,'k')>0)-SUM(svaloittaja) 'Aloittava ulkovuoro superissa',
+            {vuosittainMod.Erittely2}
             ROUND(AVG(CAST(CASE WHEN kotib THEN katsojamaara END AS INTEGER)),0) `Katsoja-keskiarvo`,
             ROUND(AVG(CAST(CASE WHEN kotib<>1 THEN katsojamaara END AS INTEGER)),0) `Katsoja-keskiarvo vieraissa`
-            { (teamParams.vuosittain ? "" : ", COUNT(DISTINCT kausi) Kaudet ") }
 
             FROM joukkue j 
             INNER JOIN puoli_ottelu po ON 
@@ -206,7 +215,7 @@ namespace pesisBackend
                 {tulosMod.Filter}
                 {vastustajaMod.Filter}
             GROUP BY j.joukkue
-            { (teamParams.vuosittain ? ", kausi " : "") }
+            {vuosittainMod.Group}
             {kotiMod.Group} 
             {tulosMod.Group}
             {vastustajaMod.Group}
@@ -248,13 +257,20 @@ namespace pesisBackend
             ROUND( 1.0*SUM( vt ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut / ott`,
             ROUND( 1.0*SUM( vtk ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut koti`,
             ROUND( 1.0*SUM( vtv ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut vieras`,
+            
+            { (tuomariParams.vuosittain ? "" : @"
+            
+             ROUND( 1.0*COUNT( DISTINCT o.ottelu_id) / COUNT( DISTINCT kausi), 1) `VT juoksut vieras`,
+            
+            ") }
+
+            {vuosittainMod.Erittely2}
             SUM(tuomari = pelituomari) PT,
             SUM(tuomari = syottotuomari) ST
-            {vuosittainMod.Erittely2}
 
             FROM ottelu o
             INNER JOIN (SELECT DISTINCT tuomari FROM tuomari) t 
-                ON tuomari = pelituomari OR tuomari = syottotuomari 
+                ON 1
                 AND o.kausi BETWEEN @kaudetAlku AND @kaudetLoppu
                 AND tila != 'ottelu ei ole vielä alkanut'
                 AND sarja = @sarja

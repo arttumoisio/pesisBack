@@ -14,7 +14,7 @@ namespace pesisBackend.Controllers
 
         public dbController()
         {
-            query = new SQLiteQueries();
+            query = new DBFactory().GetSQLiteQueries();
             queryTimer = new QueryTimer();
             returnStatusHandler = new ReturnStatusHandler();
         }

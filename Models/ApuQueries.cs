@@ -11,10 +11,10 @@ namespace pesisBackend
         private IDBHandler dBHandler;
 
         private Filters filters; 
-        public ApuQueries()
+        public ApuQueries(IDBHandler dBHandler)
         {
-            dBHandler = new SQLiteDBHandler();
-            filters = new Filters();
+            this.dBHandler = dBHandler;
+            this.filters = new Filters();
         }
 
         public string apuVuodet()

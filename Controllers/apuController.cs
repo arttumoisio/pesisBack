@@ -12,7 +12,7 @@ namespace pesisBackend.Controllers
 
         public apuController()
         {
-            query = new ApuQueries();
+            query = new DBFactory().GetApuQueries();
             returnStatusHandler = new ReturnStatusHandler();
 
         }

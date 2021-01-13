@@ -259,7 +259,7 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             return lukkariMod;
         }
         public string stpt(string STPT){
-            string Filter = "";
+            string Filter = "AND (tuomari = pelituomari OR tuomari = syottotuomari) ";
             if(!String.IsNullOrEmpty(STPT)){
                 if(STPT == "PT"){ Filter = " AND tuomari = pelituomari "; }
                 if(STPT == "ST"){ Filter = " AND tuomari = syottotuomari "; }
@@ -270,7 +270,7 @@ INNER JOIN pelaaja p ON p.pelaaja_id = ot.pelaaja_id
             Modifier vuosittainM = new Modifier();
             vuosittainM.Group = "";
             vuosittainM.Erittely = "";
-            vuosittainM.Erittely2 = ", COUNT(DISTINCT kausi) Kaudet";
+            vuosittainM.Erittely2 = "COUNT(DISTINCT kausi) Kaudet, ";
             if (vuosittain) {
                 vuosittainM.Group = ", kausi";
                 vuosittainM.Erittely = "kausi Kausi,";
