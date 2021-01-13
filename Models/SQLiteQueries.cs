@@ -254,9 +254,11 @@ namespace pesisBackend
             ROUND( 1.0*SUM(k1j+k2j+ks+kk)/COUNT(DISTINCT o.ottelu_id),2) `K-juoksut/ott`,
             ROUND( 1.0*SUM(v1j+v2j+vs+vk)/COUNT(DISTINCT o.ottelu_id),2) `V-juoksut/ott`,
             ROUND( 1.0*SUM( vttot) / COUNT( DISTINCT o.ottelu_id),2) `VT / ott`,
+            SUM( vt)) `VT yht.`,
             ROUND( 1.0*SUM( vt ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut / ott`,
             ROUND( 1.0*SUM( vtk ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut koti`,
             ROUND( 1.0*SUM( vtv ) / COUNT( DISTINCT o.ottelu_id), 2) `VT juoksut vieras`,
+            SUM( vt4)) `VT juoksut yht.`,
             
             { (tuomariParams.vuosittain ? "" : @"
             
