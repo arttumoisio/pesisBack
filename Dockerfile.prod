@@ -6,6 +6,7 @@ WORKDIR /app
 COPY *.csproj ./
 RUN dotnet restore
 COPY . ./
+RUN mkdir Assets
 RUN wget --no-check-certificate --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=10H5Tpt9iAI8PaYki5ntznK3uVITEO_gA' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=10H5Tpt9iAI8PaYki5ntznK3uVITEO_gA" -O ./Assets/pesistk.db && rm -rf /tmp/cookies.txt
 RUN dotnet publish -c Release -o out
 
