@@ -44,3 +44,6 @@ build_script*.sh
 # System Files
 .DS_Store
 Thumbs.db
+
+# Local backup
+pesistk.db-backup
