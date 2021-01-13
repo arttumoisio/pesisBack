@@ -262,7 +262,7 @@ namespace pesisBackend
             
             { (tuomariParams.vuosittain ? "" : @"
             
-             ROUND( 1.0*COUNT( DISTINCT o.ottelu_id) / COUNT( DISTINCT kausi), 1) `VT juoksut vieras`,
+             ROUND( 1.0*COUNT( DISTINCT o.ottelu_id) / COUNT( DISTINCT kausi), 1) `Ott / kausi`,
             
             ") }
 
