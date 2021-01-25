@@ -122,7 +122,7 @@ namespace pesisBackend.Controllers
                 kaudetLoppu, 
                 sarja,
                 sarjavaihe,
-                vuosittain=false,
+                vuosittain,
                 kotijoukkue,
                 vierasjoukkue,
                 lukkari,
